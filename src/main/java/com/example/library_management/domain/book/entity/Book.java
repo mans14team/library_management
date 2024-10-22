@@ -5,17 +5,20 @@ import com.example.library_management.domain.bookCopy.entity.BookCopy;
 import com.example.library_management.domain.review.entity.Review;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "book")
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(nullable = false)
@@ -23,11 +26,13 @@ public class Book {
 
     private String bookDescription;
 
+    private String bookAuthor;
+
     @Column(nullable = false)
     private String bookPublisher;
 
     @Column(nullable = false)
-    private LocalDateTime bookPublished;
+    private LocalDate bookPublished;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

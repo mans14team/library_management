@@ -22,8 +22,10 @@ public class Book {
     private String bookTitle;
 
     private String bookDescription;
+
     @Column(nullable = false)
     private String bookPublisher;
+
     @Column(nullable = false)
     private LocalDateTime bookPublished;
 

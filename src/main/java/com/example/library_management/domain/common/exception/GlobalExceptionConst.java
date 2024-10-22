@@ -10,6 +10,7 @@ public enum GlobalExceptionConst {
     // 상태코드 400
     DUPLICATE_PASSWORD(HttpStatus.BAD_REQUEST, " 새 비밀번호는 이전에 사용한 비밀번호와 같을 수 없습니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, " 새 비밀번호는 8자 이상이어야 하고, 숫자와 대문자를 포함해야 합니다."),
+    INVALID_REVIEWSTAR(HttpStatus.BAD_REQUEST, "리뷰 별점은 1~5점이여야합니다."),
 
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),

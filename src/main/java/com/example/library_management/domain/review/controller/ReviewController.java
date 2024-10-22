@@ -17,9 +17,9 @@ public class ReviewController {
     /**
      * 리뷰 생성
      *
-     * @return : 201(생성) ,reviewStar,reviewTitle,reviewDescription - review 응답본문
-     * @Param : bookId - 책 고유 Id
-     * @Request : reviewStar,reviewTitle,reviewDescription - review 요청본문
+     * @return  : 201(생성) ,reviewStar,reviewTitle,reviewDescription - review 응답본문
+     * @param bookId :  책 고유 Id
+     * @param request  : reviewStar,reviewTitle,reviewDescription - review 요청본문
      */
     @PostMapping("/reviews")
     public ResponseEntity<ReviewSaveResponse> saveReview(

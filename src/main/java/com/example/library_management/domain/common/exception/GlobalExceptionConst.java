@@ -21,6 +21,8 @@ public enum GlobalExceptionConst {
     NOT_FOUND_EMAIL(HttpStatus.NOT_FOUND, " 이메일을 확인해주세요."),
     DELETED_USER(HttpStatus.NOT_FOUND, " 탈퇴된 회원입니다."),
 
+
+
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다.");
 

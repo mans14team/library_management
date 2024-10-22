@@ -31,11 +31,12 @@ public class Review extends Timestamped {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Review(Integer reviewStar,String reviewTitle,String reviewDescription,Book book){
-        this.reviewStar =reviewStar;
+    public Review(Integer reviewStar, String reviewTitle, String reviewDescription, Book book, User user) {
+        this.reviewStar = reviewStar;
         this.reviewTitle = reviewTitle;
-        this.reviewDescription =reviewDescription;
+        this.reviewDescription = reviewDescription;
         this.book = book;
+        this.user = user;
     }
 }
 

@@ -60,26 +60,20 @@ public class ReviewService {
 
     }
 
-
-    //회원이 작성한 리뷰 조회
-    public Page<ReviewsGetResponse> userWriteReviews(int page, int size, UserDetailsImpl userDetails) {
+    // 조건에 맞는 리뷰 리스트 조회
+    public Page<ReviewsGetResponse> findAllByMultipleConditions(int page, int size, Long bookId, Integer reviewStar) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
 
-       Page<Review>reviewList = reviewRepository.findAllByUserId(pageable,userDetails.getUser().getId());
+        // 별점이 null 이 아닐 경우에만 유효 범위 검증
+        if (reviewStar!= null &&!(reviewStar >= 1 && reviewStar <= 5)) {
+            throw new InvalidReviewStarException();
+        }
 
-       return reviewList.map(review -> new ReviewsGetResponse(
-               review.getBook().getId(),
-               review.getReviewStar(),
-               review.getReviewTitle(),
-               review.getReviewDescription(),
-               review.getCreatedAt(),
-               review.getModifiedAt()
-       ));
-    }
+        // 별점이 null이면 그책에 해당하는 전체 별점을 조회하고 값이 있으면 해당 별점만 조회
+        return reviewRepository.findAllByMultipleConditions(
+                pageable, bookId, reviewStar);
 
-    //해당하는 책에 대한 리뷰 조회
-    public Page<ReviewsGetResponse> getReviewsByBook(int page, int size, Long bookId, UserDetailsImpl userDetails) {
-        return null;
+
     }
 }

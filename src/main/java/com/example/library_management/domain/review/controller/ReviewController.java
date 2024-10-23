@@ -39,39 +39,25 @@ public class ReviewController {
     }
 
     /**
-     * 회원이 작성한 리뷰 조회
      *
-     * @param page        : 현재 페이지
-     * @param size        : 페이지 크기
-     * @param userDetails : 로그인한 유저정보
-     */
-    @GetMapping("/reviews")
-    public ResponseEntity<Page<ReviewsGetResponse>> userWriteReviews(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal UserDetailsImpl userDetails
-    ) {
-
-        return ResponseEntity.ok(reviewService.userWriteReviews(page, size, userDetails));
-
-    }
-
-    /**
-     * 해당하는 책에 관한 리뷰를 조회
+     * reviewStar와 bookId가 존재할때 해당 책에 대한 별점을 기준으로 조회
+     * 별점과 책 고유 번호가 null 값일때 리뷰 전체 조회
+     * 별점만 null 일때 해당 책의 리뷰 전체 조회
+     * bookId만 null일때 별점이 1~5점인 책을 조회
      *
      * @param page        : 현재 페이지
      * @param size        : 페이지 크기
      * @param bookId      : 책 고유 번호
-     * @param userDetails : 로그인한 유저정보
+     * @param reviewStar : 별점
      */
     @GetMapping("/reviews")
-    public ResponseEntity<Page<ReviewsGetResponse>> getReviewsByBook(
+    public ResponseEntity<Page<ReviewsGetResponse>> findAllByMultipleConditions(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long bookId,
-            @AuthenticationPrincipal UserDetailsImpl userDetails
+            @RequestParam(required = false) Integer reviewStar
     ) {
-        return  ResponseEntity.ok(reviewService.getReviewsByBook(page,size,bookId,userDetails));
+        return  ResponseEntity.ok(reviewService.findAllByMultipleConditions(page,size,bookId,reviewStar));
 
     }
 }

@@ -38,6 +38,12 @@ public class Review extends Timestamped {
         this.book = book;
         this.user = user;
     }
+
+    public void update(Integer reviewStar, String reviewTitle, String reviewDescription) {
+        this.reviewStar = reviewStar;
+        this.reviewTitle = reviewTitle;
+        this.reviewDescription = reviewDescription;
+    }
 }
 
 

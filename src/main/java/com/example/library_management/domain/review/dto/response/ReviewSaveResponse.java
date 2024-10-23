@@ -1,4 +1,4 @@
-package com.example.library_management.domain.review.dto.request;
+package com.example.library_management.domain.review.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

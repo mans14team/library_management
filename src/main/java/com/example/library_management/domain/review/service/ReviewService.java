@@ -2,11 +2,15 @@ package com.example.library_management.domain.review.service;
 
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.repository.BookRepository;
-import com.example.library_management.domain.review.dto.request.ReviewRequest;
-import com.example.library_management.domain.review.dto.request.ReviewSaveResponse;
+import com.example.library_management.domain.review.dto.request.ReviewSaveRequest;
+import com.example.library_management.domain.review.dto.request.ReviewUpdateRequest;
+import com.example.library_management.domain.review.dto.response.ReviewSaveResponse;
+import com.example.library_management.domain.review.dto.response.ReviewUpdateResponse;
 import com.example.library_management.domain.review.dto.response.ReviewsGetResponse;
 import com.example.library_management.domain.review.entity.Review;
 import com.example.library_management.domain.review.exception.InvalidReviewStarException;
+import com.example.library_management.domain.review.exception.ReviewAccessForbiddenException;
+import com.example.library_management.domain.review.exception.ReviewNotFoundException;
 import com.example.library_management.domain.review.repository.ReviewRepository;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.exception.NotFoundUserException;
@@ -28,7 +32,7 @@ public class ReviewService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ReviewSaveResponse saveReview(Long bookId, ReviewRequest request, UserDetailsImpl userDetails) {
+    public ReviewSaveResponse saveReview(Long bookId, ReviewSaveRequest request, UserDetailsImpl userDetails) {
 
         // 책이 등록되어있지 않다면 예외처리
         Book book = bookRepository.findById(bookId)
@@ -66,7 +70,7 @@ public class ReviewService {
 
 
         // 별점이 null 이 아닐 경우에만 유효 범위 검증
-        if (reviewStar!= null &&!(reviewStar >= 1 && reviewStar <= 5)) {
+        if (reviewStar != null && !(reviewStar >= 1 && reviewStar <= 5)) {
             throw new InvalidReviewStarException();
         }
 
@@ -75,5 +79,64 @@ public class ReviewService {
                 pageable, bookId, reviewStar);
 
 
+    }
+
+    //로그인한 유저가 작성한 리뷰 조회
+    public Page<ReviewsGetResponse> findAllUserWriten(int page, int size, UserDetailsImpl userDetails) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Review> reviewList = reviewRepository.findAllUserWriten(pageable, userDetails.getUser().getId());
+
+        return reviewList.map(list -> new ReviewsGetResponse(
+                list.getBook().getId(),
+                list.getId(),
+                list.getReviewStar(),
+                list.getReviewTitle(),
+                list.getReviewDescription(),
+                list.getCreatedAt(),
+                list.getModifiedAt()
+        ));
+
+    }
+
+    @Transactional
+    public ReviewUpdateResponse updateReview(ReviewUpdateRequest request, Long reviewId, UserDetailsImpl userDetails) {
+        Long userId = userDetails.getUser().getId();
+
+        //리뷰가 없을때 예외처리
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(ReviewNotFoundException::new);
+        // 리뷰 수정 권한이 없다면 예외처리
+        if (!review.getUser().getId().equals(userId)) {
+            throw new ReviewAccessForbiddenException();
+        }
+
+        review.update(
+                request.getReviewStar(),
+                request.getReviewTitle(),
+                request.getReviewDescription()
+        );
+        return new ReviewUpdateResponse(
+                review.getBook().getId(),
+                review.getId(),
+                review.getReviewStar(),
+                review.getReviewTitle(),
+                review.getReviewDescription(),
+                review.getCreatedAt(),
+                review.getModifiedAt()
+        );
+    }
+
+    @Transactional
+    public void deleteReview(Long reviewId, UserDetailsImpl userDetails) {
+        Long userId = userDetails.getUser().getId();
+
+        //리뷰가 없을 때 예외처리
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(ReviewNotFoundException::new);
+        // 리뷰를 작성한 사람이 아니면 예외처리
+        if (!review.getUser().getId().equals(userId)) {
+            throw new ReviewAccessForbiddenException();
+        }
+        reviewRepository.deleteById(reviewId);
     }
 }

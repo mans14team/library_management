@@ -10,6 +10,7 @@ import com.example.library_management.domain.review.exception.ReviewNotFoundExce
 import com.example.library_management.domain.review.service.ReviewService;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/books")
+@Slf4j
+@RequestMapping("library/books")
 public class ReviewController {
     private final ReviewService reviewService;
 
@@ -60,6 +62,7 @@ public class ReviewController {
             @RequestParam(required = false) Long bookId,
             @RequestParam(required = false) Integer reviewStar
     ) {
+        log.info("잘 들어오는지 확인 중 ,,,");
         return ResponseEntity.ok(reviewService.findAllByMultipleConditions(page, size, bookId, reviewStar));
 
     }

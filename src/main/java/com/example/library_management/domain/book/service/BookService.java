@@ -7,9 +7,12 @@ import com.example.library_management.domain.book.exception.FindBookException;
 import com.example.library_management.domain.book.exception.FindCatogoryException;
 import com.example.library_management.domain.book.repository.BookRepository;
 import com.example.library_management.domain.bookCategory.repository.BookCategoryRepository;
+import com.example.library_management.global.security.UserDetailsImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class BookService {
         return new BookReponseDto(savedBook);
     }
 
-    public BookReponseDto updateBook(Long bookId, BookRequestDto bookRequestDto) {
+    public BookReponseDto updateBook(Long bookId, BookRequestDto bookRequestDto, UserDetailsImpl userDetails) {
         Book book = bookRepository.findById(bookId).orElseThrow(
                 () -> new FindBookException()
         );
@@ -66,5 +69,25 @@ public class BookService {
         Book savedBook = bookRepository.save(book);
 
         return new BookReponseDto(savedBook);
+    }
+
+    public Long deleteBook(Long bookId, UserDetailsImpl userDetails) {
+        return 1L;
+    }
+
+    public Boolean validateUser(Long id, UserDetailsImpl userDetails) {
+        return true;
+    }
+
+    public List<BookReponseDto> getBooks() {
+        return null;
+    }
+
+    public BookReponseDto getBookById(Long bookId) {
+        return null;
+    }
+
+    public List<BookReponseDto> getBooksByCategory(String category) {
+        return null;
     }
 }

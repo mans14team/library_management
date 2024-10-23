@@ -61,18 +61,16 @@ public class BoardService {
 
     // 게시글 목록 조회
     public Page<BoardListResponseDto> getBoardList(BoardType boardType, boolean includeSecret, Pageable pageable, User user) {
-        Page<Board> boardList;
-
         // 관리자인 경우
         if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
-            boardList = boardRepository.findByBoardTypeAndStatus(
+            return boardRepository.findAllBoardDtoList(
                     boardType,
                     BoardStatus.ACTIVE,
                     pageable
             );
         }// 일반 사용자이고 비밀글 포함 요청인 경우
         else if (includeSecret) {
-            boardList = boardRepository.findByBoardTypeAndStatusAndIsSecretFalseOrUser(
+            return boardRepository.findBoardDtoListForUser(
                     boardType,
                     BoardStatus.ACTIVE,
                     user,
@@ -80,14 +78,14 @@ public class BoardService {
             );
         }// 일반 사용자이고 공개글만 요청하는 경우
         else {
-            boardList = boardRepository.findByBoardTypeAndStatusAndIsSecretFalse(
+            return boardRepository.findBoardDtoList(
                     boardType,
                     BoardStatus.ACTIVE,
                     pageable
             );
         }
 
-        return boardList.map(BoardListResponseDto::new);
+//        return boardList.map(BoardListResponseDto::new);
     }
 
     // 게시글 수정
@@ -154,7 +152,7 @@ public class BoardService {
     }
 
     private Board findBoardById(Long boardId) {
-        return boardRepository.findById(boardId)
+        return boardRepository.findByIdWithUserAndComments(boardId)
                 .orElseThrow(() -> new BoardNotFoundException());
     }
 }

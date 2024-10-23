@@ -27,7 +27,11 @@ public enum GlobalExceptionConst {
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, " 스터디룸이 존재하지 않습니다."),
 
     // 상태코드 409
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다.");
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),
+    ROOM_RESERVE_OVERLAP(HttpStatus.CONFLICT, "예약 시간이 겹쳐 예약이 불가능합니다."),
+
+    // 상태코드 422
+    ROOM_RESERVE_UNPROCESSABLE(HttpStatus.UNPROCESSABLE_ENTITY, "해당 스터디룸 에약이 불가능합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

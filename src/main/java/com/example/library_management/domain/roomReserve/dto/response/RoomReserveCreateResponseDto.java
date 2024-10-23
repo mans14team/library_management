@@ -12,6 +12,8 @@ public class RoomReserveCreateResponseDto {
 
     private final Long id;
 
+    private final Long userId;
+
     private final LocalDateTime reservationDate;    //예약 시작일
 
     private final LocalDateTime reservationDateEnd; //예약 종료일
@@ -23,6 +25,7 @@ public class RoomReserveCreateResponseDto {
 
     public RoomReserveCreateResponseDto(RoomReserve roomReserve) {
         this.id = roomReserve.getId();
+        this.userId = roomReserve.getUser().getId();
         this.reservationDate = roomReserve.getReservationDate();
         this.reservationDateEnd = roomReserve.getReservationDateEnd();
         this.createdAt = roomReserve.getCreatedAt();

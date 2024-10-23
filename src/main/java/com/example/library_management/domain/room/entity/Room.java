@@ -40,4 +40,10 @@ public class Room {
         this.roomName = roomUpdateRequestDto.getRoomName();
         this.roomStatus = roomUpdateRequestDto.getRoomStatus();
     }
+
+    // 스터디룸 상태 변경
+    public void updateRoomStatus() {
+        this.roomStatus = (this.roomStatus == RoomStatus.AVAILABLE) ? RoomStatus.NON_AVAILABLE : RoomStatus.AVAILABLE;
+    }
+
 }

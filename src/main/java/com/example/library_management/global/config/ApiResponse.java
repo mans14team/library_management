@@ -1,5 +1,6 @@
 package com.example.library_management.global.config;
 
+import com.example.library_management.domain.common.dto.ErrorResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,12 @@ public class ApiResponse<T> {
     }
 
 
-    public static ApiResponse<?> error(String message) {
+    public static ApiResponse<?> fail(String message) {
         return new ApiResponse<>(Status.FAIL, "", message);
+    }
+
+    public static ApiResponse<ErrorResponse> error(ErrorResponse errorResponse) {
+        return new ApiResponse<>(Status.ERROR, errorResponse, null);
     }
 }
 

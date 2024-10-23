@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +26,12 @@ public class BookController {
     public ResponseEntity<BookReponseDto> addBook(@RequestBody BookRequestDto bookRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         BookReponseDto bookReponseDto = bookService.addBook(bookRequestDto);
         logger.info(userDetails.getUsername());
+        return ResponseEntity.ok(bookReponseDto);
+    }
+
+    @PatchMapping("/{book_id}")
+    public ResponseEntity<BookReponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookRequestDto bookRequestDto) {
+        BookReponseDto bookReponseDto = bookService.updateBook(bookId, bookRequestDto);
         return ResponseEntity.ok(bookReponseDto);
     }
 }

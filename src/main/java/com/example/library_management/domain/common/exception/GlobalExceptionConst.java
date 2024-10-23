@@ -14,6 +14,7 @@ public enum GlobalExceptionConst {
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),
     UNAUTHORIZED_OWNERTOKEN(HttpStatus.UNAUTHORIZED, " 유저 토큰이 틀렸습니다."),
+    UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자 권한이 존재하지 않습니다."),
 
     // 상태코드 403
     NOT_FOUND_CATEGORY(HttpStatus.NOT_FOUND, " 존재하지 않는 카테고리입니다."),

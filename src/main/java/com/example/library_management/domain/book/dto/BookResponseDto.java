@@ -5,12 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class BookReponseDto {
-    public BookReponseDto(Book book) {
+public class BookResponseDto {
+    public BookResponseDto(Book book) {
         this.bookTitle = book.getBookTitle();
         this.bookDescription = book.getBookDescription();
         this.bookAuthor = book.getBookAuthor();

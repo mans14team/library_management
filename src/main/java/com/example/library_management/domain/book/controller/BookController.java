@@ -1,8 +1,8 @@
 package com.example.library_management.domain.book.controller;
 
-import com.example.library_management.domain.book.dto.BookReponseDto;
+import com.example.library_management.domain.book.dto.BookResponseDto;
 import com.example.library_management.domain.book.dto.BookRequestDto;
-import com.example.library_management.domain.book.entity.Book;
+import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.service.BookService;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -23,18 +24,17 @@ public class BookController {
     private final BookService bookService;
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
-
     @PostMapping
-    public ResponseEntity<BookReponseDto> addBook(@RequestBody BookRequestDto bookRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        BookReponseDto bookReponseDto = bookService.addBook(bookRequestDto);
+    public ResponseEntity<BookResponseDto> addBook(@RequestBody BookRequestDto bookRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        BookResponseDto bookResponseDto = bookService.addBook(bookRequestDto, userDetails);
         logger.info(userDetails.getUsername());
-        return ResponseEntity.ok(bookReponseDto);
+        return ResponseEntity.ok(bookResponseDto);
     }
 
     @PatchMapping("/{book_id}")
-    public ResponseEntity<BookReponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookRequestDto bookRequestDto) {
-        BookReponseDto bookReponseDto = bookService.updateBook(bookId, bookRequestDto, userDetails);
-        return ResponseEntity.ok(bookReponseDto);
+    public ResponseEntity<BookResponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookRequestDto bookRequestDto) {
+        BookResponseDto bookResponseDto = bookService.updateBook(bookId, bookRequestDto, userDetails);
+        return ResponseEntity.ok(bookResponseDto);
     }
 
     @DeleteMapping("/{book_id}")
@@ -44,20 +44,21 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookReponseDto>> getBooks() {
-        List<BookReponseDto> bookReponseDtoList = bookService.getBooks();
-        return ResponseEntity.ok(bookReponseDtoList);
+    public ResponseEntity<List<BookResponseDtos>> getBooks(@RequestParam(value = "category", required = false) Long categoryId) {
+        List<BookResponseDtos> bookResponseDtosList;
+        if(categoryId != null){
+            bookResponseDtosList = bookService.getBooksByCategory(categoryId);
+        }
+        else {
+            bookResponseDtosList = bookService.getBooks();
+        }
+
+        return ResponseEntity.ok(bookResponseDtosList);
     }
 
     @GetMapping("/{book_id}")
-    public ResponseEntity<BookReponseDto> getBookById(@PathVariable("book_id") Long bookId) {
-        BookReponseDto bookReponseDto = bookService.getBookById(bookId);
-        return ResponseEntity.ok(bookReponseDto);
-    }
-
-    @GetMapping()
-    public ResponseEntity<List<BookReponseDto>> getBooksByCategory(@RequestParam("category") String category) {
-        List<BookReponseDto> bookReponseDtoList = bookService.getBooksByCategory(category);
-        return ResponseEntity.ok(bookReponseDtoList);
+    public ResponseEntity<BookResponseDto> getBookById(@PathVariable("book_id") Long bookId) {
+        BookResponseDto bookResponseDto = bookService.getBookById(bookId);
+        return ResponseEntity.ok(bookResponseDto);
     }
 }

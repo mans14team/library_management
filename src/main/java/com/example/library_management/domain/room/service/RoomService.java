@@ -4,9 +4,13 @@ import com.example.library_management.domain.room.dto.request.RoomCreateRequestD
 import com.example.library_management.domain.room.dto.request.RoomUpdateRequestDto;
 import com.example.library_management.domain.room.dto.response.RoomCreateResponseDto;
 import com.example.library_management.domain.room.dto.response.RoomDeleteResponseDto;
+import com.example.library_management.domain.room.dto.response.RoomGetResponseDto;
 import com.example.library_management.domain.room.dto.response.RoomUpdateResponseDto;
 import com.example.library_management.domain.room.entity.Room;
+import com.example.library_management.domain.room.exception.NotFoundRoomException;
+import com.example.library_management.domain.room.exception.UnauthorizedRoomAccessException;
 import com.example.library_management.domain.room.repository.RoomRepository;
+import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +23,18 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
+    @Transactional(readOnly = true)
+    public RoomGetResponseDto getRoom(Long roomId) {
+        // 로직
+        Room room = findRoomById(roomId);
+
+        return new RoomGetResponseDto(room);
+    }
+
     @Transactional
-    public RoomCreateResponseDto createRoom(RoomCreateRequestDto roomCreateRequestDto) {
-        // JWT 토큰 -> 요청자 권한 확인, ADMIN인지 확인
+    public RoomCreateResponseDto createRoom(UserDetailsImpl userDetails, RoomCreateRequestDto roomCreateRequestDto) {
+        // 요청자 권한 확인
+        validateRoomAccess(userDetails);
 
         // 로직
         Room room = Room.createRoom(roomCreateRequestDto);
@@ -32,8 +45,9 @@ public class RoomService {
     }
 
     @Transactional
-    public RoomUpdateResponseDto updateRoom(Long roomId, RoomUpdateRequestDto roomUpdateRequestDto) {
-        // JWT 토큰 -> 요청자 권한 확인, ADMIN인지 확인
+    public RoomUpdateResponseDto updateRoom(UserDetailsImpl userDetails, Long roomId, RoomUpdateRequestDto roomUpdateRequestDto) {
+        // 요청자 권한 확인
+        validateRoomAccess(userDetails);
 
         // 로직   -> CustomException 변경해야함.
         Room updatedRoom = findRoomById(roomId);
@@ -44,8 +58,9 @@ public class RoomService {
     }
 
     @Transactional
-    public RoomDeleteResponseDto deleteRoom(Long roomId) {
-        // JWT 토큰 -> 요청자 권한 확인, ADMIN인지 확인
+    public RoomDeleteResponseDto deleteRoom(UserDetailsImpl userDetails, Long roomId) {
+        // 요청자 권한 확인
+        validateRoomAccess(userDetails);
 
         // 로직
         Room deletedRoom = findRoomById(roomId);
@@ -59,8 +74,19 @@ public class RoomService {
     // Room 조회
     public Room findRoomById(Long roomId) {
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new NoSuchElementException("전달된 id 값에 해당하는 Room 엔티티가 존재하지 않습니다."));
+                .orElseThrow(NotFoundRoomException::new);
 
         return room;
+    }
+
+    // 요청자 권한 확인
+    public void validateRoomAccess(UserDetailsImpl userDetails){
+        // 사용자가 ADMIN 권한을 가지고 있는지 확인
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
+
+        if (!isAdmin) {
+            throw new UnauthorizedRoomAccessException();
+        }
     }
 }

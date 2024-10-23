@@ -12,12 +12,14 @@ import java.time.LocalDateTime;
 @Getter
 @Table(name = "room_reserve")
 public class RoomReserve extends Timestamped {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private LocalDateTime reservationDate;
+
     @Column(nullable = false)
     private LocalDateTime reservationDateEnd;
 

@@ -11,6 +11,7 @@ import com.example.library_management.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,14 +48,14 @@ public class User extends Timestamped {
     @OneToMany(mappedBy = "user")
     private List<BookRental> bookRentalList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
-    private List<BookReservation> bookReservationList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user")
-    private List<Review> reviewList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user")
-    private List<RoomReserve> roomReserveList = new ArrayList<>();
+//    @OneToMany(mappedBy = "user")
+//    private List<BookReservation> bookReservationList = new ArrayList<>();
+//
+//    @OneToMany(mappedBy = "user")
+//    private List<Review> reviewList = new ArrayList<>();
+//
+//    @OneToMany(mappedBy = "user")
+//    private List<RoomReserve> roomReserveList = new ArrayList<>();
 
     public User(String email, String password, String userName, UserRole userRole) {
         this.email = email;

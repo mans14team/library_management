@@ -11,6 +11,7 @@ import com.example.library_management.global.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -61,7 +62,7 @@ public class BoardController {
                                                                                @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable,
                                                                                @AuthenticationPrincipal UserDetailsImpl userDetails){
         Page<BoardListResponseDto> boardList = boardService.getBoardList(boardType, includeSecret, pageable, userDetails.getUser());
-        return ResponseEntity.ok(ApiResponse.success(boardList));
+        return ResponseEntity.ok(ApiResponse.success(new PageImpl<>(boardList.getContent(), boardList.getPageable(), boardList.getTotalElements())));
     }
 
     // 게시글 검색 api

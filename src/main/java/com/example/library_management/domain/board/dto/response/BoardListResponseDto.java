@@ -15,8 +15,8 @@ public class BoardListResponseDto {
     private boolean isSecret;
     private boolean isPinned;
     private BoardType boardType;
-    private LocalDateTime modifiedAy;
-    private int commentCount;       // 댓글 수
+    private LocalDateTime modifiedAt;
+    private Long commentCount;       // 댓글 수
 
     public BoardListResponseDto(Board board) {
         this.id = board.getId();
@@ -26,7 +26,22 @@ public class BoardListResponseDto {
         this.isSecret = board.isSecret();
         this.isPinned = board.isPinned();
         this.boardType = board.getBoardType();
-        this.modifiedAy = board.getModifiedAt();
-        this.commentCount = board.getCommentList().size();
+        this.modifiedAt = board.getModifiedAt();
+        this.commentCount = (long) board.getCommentList().size();
+    }
+
+    public BoardListResponseDto(Long id, String title, String username,
+                                int viewCount, boolean isSecret, boolean isPinned,
+                                BoardType boardType, LocalDateTime modifiedAt,
+                                long commentCount) {
+        this.id = id;
+        this.title = title;
+        this.username = username;
+        this.viewCount = viewCount;
+        this.isSecret = isSecret;
+        this.isPinned = isPinned;
+        this.boardType = boardType;
+        this.modifiedAt = modifiedAt;
+        this.commentCount = commentCount;
     }
 }

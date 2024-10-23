@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
@@ -61,7 +61,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        .requestMatchers("auth/**", "/oauth2/**").permitAll()  // 로그인, 회원가입 필터 통과
+                        .requestMatchers("auth/**", "/oauth2/**").permitAll()// 로그인, 회원가입 필터 통과
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 

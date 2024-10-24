@@ -96,7 +96,9 @@ public class BookService {
         Book book = bookRepository.findById(bookId).orElseThrow(
                 () -> new FindBookException()
         );
+
         bookRepository.delete(book);
+
         return bookId;
     }
 

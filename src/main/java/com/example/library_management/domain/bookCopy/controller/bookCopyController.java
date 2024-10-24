@@ -28,8 +28,9 @@ public class bookCopyController {
     }
 
     @DeleteMapping("/{book_copy_id}")
-    public Long deleteBookCopy(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable("book_copy_id") Long bookCopyId) {
-        return null;
+    public ResponseEntity<Long> deleteBookCopy(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable("book_copy_id") Long bookCopyId) {
+        Long deletedBookCopyId = bookCopyService.deleteBookCopy(userDetails, bookCopyId);
+        return ResponseEntity.ok(deletedBookCopyId);
     }
 
     @GetMapping("/{book_copy_id}")

@@ -7,6 +7,7 @@ import com.example.library_management.domain.book.repository.BookRepository;
 import com.example.library_management.domain.bookCopy.dto.BookCopyRequestDto;
 import com.example.library_management.domain.bookCopy.dto.BookCopyResponseDto;
 import com.example.library_management.domain.bookCopy.entity.BookCopy;
+import com.example.library_management.domain.bookCopy.exception.FindBookCopyException;
 import com.example.library_management.domain.bookCopy.repository.BookCopyRepository;
 import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.global.security.UserDetailsImpl;
@@ -50,5 +51,17 @@ public class BookCopyService {
 
     public Boolean validateUserAdmin(UserDetailsImpl userDetails) {
         return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
+    }
+
+    public Long deleteBookCopy(UserDetailsImpl userDetails, Long bookCopyId) {
+        if(!validateUserAdmin(userDetails)){
+            throw new AuthorizedAdminException();
+        }
+
+        BookCopy bookCopy = bookCopyRepository.findById(bookCopyId).orElseThrow(FindBookCopyException::new);
+
+        bookCopyRepository.delete(bookCopy);
+
+        return bookCopyId;
     }
 }

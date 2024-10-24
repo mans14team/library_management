@@ -85,4 +85,20 @@ public class BookRentalService {
 
         return new BookRentalResponseDto(returnedBookRental);
     }
+
+    public Long deleteBookRental(Long bookRentalId, UserDetailsImpl userDetails) {
+        if(!validateUser(userDetails)) {
+            throw new AuthorizedAdminException();
+        }
+
+        BookRental bookRental = bookRentalRepository.findById(bookRentalId).orElseThrow(NotFoundBookRenalHistoryException::new);
+
+        bookRentalRepository.delete(bookRental);
+
+        BookCopy bookCopy = bookRental.getBookCopy();
+        bookCopy.updateBookCopy(null, null, null, true);
+        bookCopyRepository.save(bookCopy);
+
+        return bookRental.getId();
+    }
 }

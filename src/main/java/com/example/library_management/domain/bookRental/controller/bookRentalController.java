@@ -27,4 +27,10 @@ public class bookRentalController {
         BookRentalResponseDto bookRentalResponseDto = bookRentalService.returnBookRental(bookRentalRequestDto, userDetails);
         return ResponseEntity.ok(bookRentalResponseDto);
     }
+
+    @DeleteMapping("/{book_rental_id}")
+    public ResponseEntity<Long> deleteBookRental(@PathVariable("book_rental_id") Long bookRentalId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long deletedBookRental = bookRentalService.deleteBookRental(bookRentalId, userDetails);
+        return ResponseEntity.ok(deletedBookRental);
+    }
 }

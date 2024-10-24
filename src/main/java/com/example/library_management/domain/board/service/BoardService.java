@@ -151,7 +151,7 @@ public class BoardService {
         }
     }
 
-    private Board findBoardById(Long boardId) {
+    public Board findBoardById(Long boardId) {
         return boardRepository.findByIdWithUserAndComments(boardId)
                 .orElseThrow(() -> new BoardNotFoundException());
     }

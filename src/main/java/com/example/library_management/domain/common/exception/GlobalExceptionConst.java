@@ -21,6 +21,8 @@ public enum GlobalExceptionConst {
     // 상태코드 403
     UNAUTHORIZED_CREATE(HttpStatus.UNAUTHORIZED, " 게시글 권한이 없습니다."),
     UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED," 리뷰를 수정/삭제할 권한이 없습니다."),
+    UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED,"리뷰를 수정/삭제할 권한이 없습니다."),
+    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.UNAUTHORIZED, " 댓글 접근에 권한이 없습니다."),
 
     // 상태코드 404
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, " 회원이 존재하지 않습니다."),
@@ -32,8 +34,7 @@ public enum GlobalExceptionConst {
     NOT_FOUND_BOOK(HttpStatus.NOT_FOUND, " 존재하지 않는 도서 ID 입니다."),
     NOT_FOUND_BOOK_COPY(HttpStatus.NOT_FOUND, " 존재하지 않는 복본 ID 입니다."),
     NOT_FOUND_BOOK_RENTAL(HttpStatus.NOT_FOUND, " 존재하지 않는 대여기록입니다."),
-
-
+    NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, " 댓글을 찾을 수 없습니다."),
 
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),

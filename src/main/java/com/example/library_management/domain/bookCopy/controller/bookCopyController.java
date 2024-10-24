@@ -24,7 +24,7 @@ public class bookCopyController {
     @PutMapping("/{book_copy_id}")
     public ResponseEntity<BookCopyResponseDto> updateBookCopy(@RequestBody BookCopyRequestDto bookCopyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable("book_copy_id") Long bookCopyId) {
         BookCopyResponseDto bookCopyResponseDto = bookCopyService.updateBookCopy(bookCopyRequestDto, userDetails, bookCopyId);
-        return null;
+        return ResponseEntity.ok(bookCopyResponseDto);
     }
 
     @DeleteMapping("/{book_copy_id}")

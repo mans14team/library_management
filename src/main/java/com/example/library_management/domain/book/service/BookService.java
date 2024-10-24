@@ -1,5 +1,6 @@
 package com.example.library_management.domain.book.service;
 
+import com.example.library_management.domain.book.controller.BookController;
 import com.example.library_management.domain.book.dto.BookResponseDto;
 import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
@@ -14,6 +15,8 @@ import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.global.security.UserDetailsImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +27,8 @@ import java.util.List;
 public class BookService {
     private final BookRepository bookRepository;
     private final BookCategoryRepository categoryRepository;
-    private final BookCategoryRepository bookCategoryRepository;
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+
 
     public BookResponseDto addBook(BookRequestDto bookRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)){
@@ -110,7 +114,7 @@ public class BookService {
         Book book = bookRepository.findById(bookId).orElseThrow(
                 FindBookException::new
         );
-        return null;
+        return new BookResponseDto(book);
     }
 
     public List<BookResponseDtos> getBooksByCategory(Long categoryId) {

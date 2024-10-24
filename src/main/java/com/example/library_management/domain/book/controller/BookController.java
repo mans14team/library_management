@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -31,7 +30,7 @@ public class BookController {
         return ResponseEntity.ok(bookResponseDto);
     }
 
-    @PatchMapping("/{book_id}")
+    @PutMapping("/{book_id}")
     public ResponseEntity<BookResponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookRequestDto bookRequestDto) {
         BookResponseDto bookResponseDto = bookService.updateBook(bookId, bookRequestDto, userDetails);
         return ResponseEntity.ok(bookResponseDto);

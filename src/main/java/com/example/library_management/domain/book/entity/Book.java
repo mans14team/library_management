@@ -61,6 +61,6 @@ public class Book {
         if(bookAuthor != null) this.bookAuthor = bookAuthor;
         if(bookPublisher != null) this.bookPublisher = bookPublisher;
         if(bookPublished != null) this.bookPublished = bookPublished;
-        if(category != null) this.category = category;
+        this.category = category;
     }
 }

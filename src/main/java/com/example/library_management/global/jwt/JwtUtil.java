@@ -1,5 +1,6 @@
 package com.example.library_management.global.jwt;
 
+import com.example.library_management.domain.book.controller.BookController;
 import com.example.library_management.domain.user.enums.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -9,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -36,6 +39,9 @@ public class JwtUtil {
     private final long ACCESS_TOKEN_TIME = 30 * 60 * 1000L; // 60분
     // refresh 토큰 만료시간
     private final long REFRESH_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
+
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+
 
     @Value("${jwt.secret.key}") // Base64 Encode 한 SecretKey
     private String secretKey;

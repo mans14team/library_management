@@ -38,4 +38,6 @@ public class bookCopyController {
         BookCopyResponseDto bookCopyResponseDto = bookCopyService.getBookCopyById(bookCopyId);
         return ResponseEntity.ok(bookCopyResponseDto);
     }
+
+    // 도서별 복본 목록 검색
 }

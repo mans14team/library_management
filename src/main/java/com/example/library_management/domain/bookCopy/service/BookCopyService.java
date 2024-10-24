@@ -64,4 +64,9 @@ public class BookCopyService {
 
         return bookCopyId;
     }
+
+    public BookCopyResponseDto getBookCopyById(Long bookCopyId) {
+        BookCopy bookCopy = bookCopyRepository.findById(bookCopyId).orElseThrow(FindBookCopyException::new);
+        return new BookCopyResponseDto(bookCopy.getId(), bookCopy.getBook().getBookTitle());
+    }
 }

@@ -34,7 +34,8 @@ public class bookCopyController {
     }
 
     @GetMapping("/{book_copy_id}")
-    public ResponseEntity<BookCopyResponseDto> getBookCopy(@PathVariable("book_copy_id") Long bookCopyId) {
-        return null;
+    public ResponseEntity<BookCopyResponseDto> getBookCopyById(@PathVariable("book_copy_id") Long bookCopyId) {
+        BookCopyResponseDto bookCopyResponseDto = bookCopyService.getBookCopyById(bookCopyId);
+        return ResponseEntity.ok(bookCopyResponseDto);
     }
 }

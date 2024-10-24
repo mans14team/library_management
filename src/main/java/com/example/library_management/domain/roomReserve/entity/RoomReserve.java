@@ -41,4 +41,12 @@ public class RoomReserve extends Timestamped {
         return roomReserve;
     }
 
+    public void updateReservationDate(LocalDateTime reservationDate) {
+        this.reservationDate = reservationDate;
+    }
+
+    public void updateReservationDateEnd(LocalDateTime reservationDateEnd) {
+        this.reservationDateEnd = reservationDateEnd;
+    }
+
 }

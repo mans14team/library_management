@@ -4,8 +4,12 @@ import com.example.library_management.domain.room.entity.Room;
 import com.example.library_management.domain.room.enums.RoomStatus;
 import com.example.library_management.domain.room.service.RoomService;
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveCreateRequestDto;
+import com.example.library_management.domain.roomReserve.dto.request.RoomReserveUpdateRequestDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveCreateResponseDto;
+import com.example.library_management.domain.roomReserve.dto.response.RoomReserveUpdateResponseDto;
 import com.example.library_management.domain.roomReserve.entity.RoomReserve;
+import com.example.library_management.domain.roomReserve.exception.NotFoundRoomReserveException;
+import com.example.library_management.domain.roomReserve.exception.ReservationModificationNotAllowedException;
 import com.example.library_management.domain.roomReserve.exception.RoomReserveOverlapException;
 import com.example.library_management.domain.roomReserve.exception.RoomReserveUnavailableException;
 import com.example.library_management.domain.roomReserve.repository.RoomReserveRepository;
@@ -81,5 +85,38 @@ public class RoomReserveService {
         RoomReserve savedRoomReserve = roomReserveRepository.save(roomReserve);
 
         return new RoomReserveCreateResponseDto(savedRoomReserve);
+    }
+
+    @Transactional
+    public RoomReserveUpdateResponseDto updateRoomReserve(UserDetailsImpl userDetails, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
+        // 예약 정보 확인.
+        Room room = roomService.findRoomById(roomId);
+
+        RoomReserve filteredRoomReserve = room.getRoomReservations().stream()
+                .filter(reserve -> reserve.getId().equals(reserveId))
+                .findFirst().orElseThrow(NotFoundRoomReserveException::new);
+
+
+        // 예약자의 ID와 요청자의 ID가 동일한지 검증
+        if(!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())){
+            throw new ReservationModificationNotAllowedException();
+        }
+        
+        // 수정 요청받은 시간 정보가 기존 예약과 겹치는지
+
+
+
+        
+
+        // 로직 - 예약 시간의 시작과 끝 둘 중 하나 혹은 둘 다 전달되는 경우를 처리.
+        if(roomReserveUpdateRequestDto.getReservationDate() != null){
+            filteredRoomReserve.updateReservationDate(roomReserveUpdateRequestDto.getReservationDate());
+        }
+
+        if(roomReserveUpdateRequestDto.getReservationDateEnd() != null){
+            filteredRoomReserve.updateReservationDateEnd(roomReserveUpdateRequestDto.getReservationDateEnd());
+        }
+
+        return new RoomReserveUpdateResponseDto(filteredRoomReserve);
     }
 }

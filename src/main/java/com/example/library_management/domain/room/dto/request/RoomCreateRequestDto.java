@@ -12,6 +12,5 @@ public class RoomCreateRequestDto {
     @NotBlank
     private final String roomName;
 
-    @NotBlank
     private final RoomStatus roomStatus;
 }

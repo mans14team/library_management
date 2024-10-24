@@ -8,6 +8,7 @@ import com.example.library_management.domain.room.dto.response.RoomGetResponseDt
 import com.example.library_management.domain.room.dto.response.RoomUpdateResponseDto;
 import com.example.library_management.domain.room.service.RoomService;
 import com.example.library_management.global.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +26,7 @@ public class RoomController {
     }
 
     @PostMapping("/library/rooms")
-    public ResponseEntity<RoomCreateResponseDto> createRoom(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody RoomCreateRequestDto roomCreateRequestDto) {
+    public ResponseEntity<RoomCreateResponseDto> createRoom(@AuthenticationPrincipal UserDetailsImpl userDetails, @Valid @RequestBody RoomCreateRequestDto roomCreateRequestDto) {
         return ResponseEntity.ok(roomService.createRoom(userDetails, roomCreateRequestDto));
     }
 

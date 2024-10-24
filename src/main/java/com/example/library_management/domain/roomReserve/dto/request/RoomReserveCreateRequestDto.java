@@ -10,10 +10,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RoomReserveCreateRequestDto {
 
-    @NotBlank
     private final LocalDateTime reservationDate;
 
-    @NotBlank
     private final LocalDateTime reservationDateEnd;
 
 }

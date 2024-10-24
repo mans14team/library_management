@@ -49,7 +49,7 @@ public class RoomService {
         // 요청자 권한 확인
         validateRoomAccess(userDetails);
 
-        // 로직   -> CustomException 변경해야함.
+        // 로직
         Room updatedRoom = findRoomById(roomId);
 
         updatedRoom.update(roomUpdateRequestDto);
@@ -83,7 +83,8 @@ public class RoomService {
     public void validateRoomAccess(UserDetailsImpl userDetails){
         // 사용자가 ADMIN 권한을 가지고 있는지 확인
         boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        System.out.println("권한 :"+userDetails.getAuthorities());
 
         if (!isAdmin) {
             throw new UnauthorizedRoomAccessException();

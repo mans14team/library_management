@@ -28,6 +28,7 @@ public enum GlobalExceptionConst {
 
     UNAUTHORIZED_ROOMCONTROL(HttpStatus.UNAUTHORIZED, " 스터디룸 관리 권한이 없습니다."),
     UNAUTHORIZED_RESERVATION_MODIFICATION(HttpStatus.UNAUTHORIZED, "본인의 스터디룸 예약만 수정할 수 있습니다."),
+    UNAUTHORIZED_RESERVATION_DELETE(HttpStatus.UNAUTHORIZED, "본인의 스터디룸 예약만 삭제할 수 있습니다."),
 
     // 상태코드 404
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, " 회원이 존재하지 않습니다."),

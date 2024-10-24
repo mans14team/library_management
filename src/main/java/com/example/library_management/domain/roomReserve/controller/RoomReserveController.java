@@ -3,6 +3,7 @@ package com.example.library_management.domain.roomReserve.controller;
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveCreateRequestDto;
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveUpdateRequestDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveCreateResponseDto;
+import com.example.library_management.domain.roomReserve.dto.response.RoomReserveDeleteResponseDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveUpdateResponseDto;
 import com.example.library_management.domain.roomReserve.service.RoomReserveService;
 import com.example.library_management.global.security.UserDetailsImpl;
@@ -34,6 +35,13 @@ public class RoomReserveController {
         roomReserveUpdateRequestDto.validate();
 
         return ResponseEntity.ok(roomReserveService.updateRoomReserve(userDetails, roomId, reserveId, roomReserveUpdateRequestDto));
+    }
+
+    @DeleteMapping("/library/rooms/{roomId}/reservations/{reserveId}")
+    public ResponseEntity<RoomReserveDeleteResponseDto> deleteRoomReserve(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                                          @PathVariable Long roomId,
+                                                                          @PathVariable Long reserveId){
+        return ResponseEntity.ok(roomReserveService.deleteRoomReserve(userDetails, roomId, reserveId));
     }
 
 }

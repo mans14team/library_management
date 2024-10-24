@@ -5,11 +5,9 @@ import com.example.library_management.domain.bookCopy.dto.BookCopyResponseDto;
 import com.example.library_management.domain.bookCopy.service.BookCopyService;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +16,24 @@ public class bookCopyController {
     private final BookCopyService bookCopyService;
 
     @PostMapping
-    public BookCopyResponseDto addBookCopy(@RequestBody BookCopyRequestDto bookCopyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<BookCopyResponseDto> addBookCopy(@RequestBody BookCopyRequestDto bookCopyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        BookCopyResponseDto bookCopyResponseDto = bookCopyService.addBookCopy(bookCopyRequestDto, userDetails);
+        return ResponseEntity.ok(bookCopyResponseDto);
+    }
+
+    @PutMapping("/{book_copy_id}")
+    public ResponseEntity<BookCopyResponseDto> updateBookCopy(@RequestBody BookCopyRequestDto bookCopyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable("book_copy_id") Long bookCopyId) {
+        BookCopyResponseDto bookCopyResponseDto = bookCopyService.updateBookCopy(bookCopyRequestDto, userDetails, bookCopyId);
+        return null;
+    }
+
+    @DeleteMapping("/{book_copy_id}")
+    public Long deleteBookCopy(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable("book_copy_id") Long bookCopyId) {
+        return null;
+    }
+
+    @GetMapping("/{book_copy_id}")
+    public ResponseEntity<BookCopyResponseDto> getBookCopy(@PathVariable("book_copy_id") Long bookCopyId) {
         return null;
     }
 }

@@ -31,12 +31,14 @@ public enum GlobalExceptionConst {
     NOT_FOUND_CATEGORY(HttpStatus.NOT_FOUND, " 존재하지 않는 카테고리입니다."),
     NOT_FOUND_BOOK(HttpStatus.NOT_FOUND, " 존재하지 않는 도서 ID 입니다."),
     NOT_FOUND_BOOK_COPY(HttpStatus.NOT_FOUND, " 존재하지 않는 복본 ID 입니다."),
+    NOT_FOUND_BOOK_RENTAL(HttpStatus.NOT_FOUND, " 존재하지 않는 대여기록입니다."),
 
 
 
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),
-    RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다.");
+    RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다."),
+    ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

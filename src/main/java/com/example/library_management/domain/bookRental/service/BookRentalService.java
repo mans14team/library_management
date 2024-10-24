@@ -7,6 +7,9 @@ import com.example.library_management.domain.bookCopy.repository.BookCopyReposit
 import com.example.library_management.domain.bookRental.dto.BookRentalRequestDto;
 import com.example.library_management.domain.bookRental.dto.BookRentalResponseDto;
 import com.example.library_management.domain.bookRental.entity.BookRental;
+import com.example.library_management.domain.bookRental.enums.RentalState;
+import com.example.library_management.domain.bookRental.exception.AlreadyReturnException;
+import com.example.library_management.domain.bookRental.exception.NotFoundBookRenalHistoryException;
 import com.example.library_management.domain.bookRental.exception.RentableException;
 import com.example.library_management.domain.bookRental.repository.BookRentalRepository;
 import com.example.library_management.domain.user.entity.User;
@@ -14,11 +17,15 @@ import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.domain.user.exception.NotFoundUserException;
 import com.example.library_management.domain.user.repository.UserRepository;
 import com.example.library_management.global.security.UserDetailsImpl;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BookRentalService {
     private final BookRentalRepository bookRentalRepository;
     private final BookCopyRepository bookCopyRepository;
@@ -43,7 +50,9 @@ public class BookRentalService {
 
         // 대여하려는 유저의 상태 체크 ex) 연체 패널티 상태이거나 대여가능 권수를 초과한 경우
 
-        BookRental bookRental = new BookRental(bookCopy, user, bookRentalRequestDto.getRentalDate());
+        LocalDateTime rentDate = LocalDateTime.now();
+
+        BookRental bookRental = new BookRental(bookCopy, user, rentDate);
 
         BookRental savedBookRental = bookRentalRepository.save(bookRental);
 
@@ -52,5 +61,28 @@ public class BookRentalService {
         BookCopy rentaledBookCopy = bookCopyRepository.save(bookCopy);
 
         return new BookRentalResponseDto(savedBookRental);
+    }
+
+    public BookRentalResponseDto returnBookRental(BookRentalRequestDto bookRentalRequestDto, UserDetailsImpl userDetails) {
+        if(!validateUser(userDetails)) {
+            throw new AuthorizedAdminException();
+        }
+
+        BookCopy bookCopy = bookCopyRepository.findById(bookRentalRequestDto.getBookCopyId()).orElseThrow(FindBookCopyException::new);
+
+        if(bookCopy.isRentable()) {
+            throw new AlreadyReturnException();
+        }
+
+        BookRental bookRental = bookRentalRepository.findByBookCopyAndRentalState(bookCopy, RentalState.ACTIVE).orElseThrow(NotFoundBookRenalHistoryException::new);
+
+        bookRental.updateBookRental();
+
+        bookCopy.updateBookCopy(null, null, null, true);
+        bookCopyRepository.save(bookCopy);
+
+        BookRental returnedBookRental = bookRentalRepository.save(bookRental);
+
+        return new BookRentalResponseDto(returnedBookRental);
     }
 }

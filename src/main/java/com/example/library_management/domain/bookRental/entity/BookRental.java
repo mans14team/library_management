@@ -40,4 +40,9 @@ public class BookRental {
         this.returnDate = null;
         this.rentalState = RentalState.ACTIVE;
     }
+
+    public void updateBookRental() {
+        this.returnDate = LocalDateTime.now();
+        this.rentalState = RentalState.END;
+    }
 }

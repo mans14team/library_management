@@ -9,5 +9,4 @@ import java.time.LocalDateTime;
 public class BookRentalRequestDto {
     private Long bookCopyId;
     private Long userId;
-    private LocalDateTime rentalDate;
 }

@@ -8,10 +8,7 @@ import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,8 +17,14 @@ public class bookRentalController {
     private final BookRentalService bookRentalService;
 
     @PostMapping
-    public ResponseEntity<BookRentalResponseDto> addBookRental(@RequestBody BookRentalRequestDto bookRentalRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<BookRentalResponseDto> submitBookRental(@RequestBody BookRentalRequestDto bookRentalRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         BookRentalResponseDto bookRentalResponseDto = bookRentalService.submitBookRental(bookRentalRequestDto, userDetails);
+        return ResponseEntity.ok(bookRentalResponseDto);
+    }
+
+    @PutMapping
+    public ResponseEntity<BookRentalResponseDto> returnBookRental(@RequestBody BookRentalRequestDto bookRentalRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        BookRentalResponseDto bookRentalResponseDto = bookRentalService.returnBookRental(bookRentalRequestDto, userDetails);
         return ResponseEntity.ok(bookRentalResponseDto);
     }
 }

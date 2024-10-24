@@ -24,24 +24,28 @@ import java.util.List;
 public class BookService {
     private final BookRepository bookRepository;
     private final BookCategoryRepository categoryRepository;
+    private final BookCategoryRepository bookCategoryRepository;
 
     public BookResponseDto addBook(BookRequestDto bookRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)){
             throw new AuthorizedAdminException();
         }
 
-        Book book = new Book();
-        book.setBookTitle(bookRequestDto.getBookTitle());
-        book.setBookDescription(bookRequestDto.getBookDescription());
-        book.setBookAuthor(bookRequestDto.getBookAuthor());
-        book.setBookPublisher(bookRequestDto.getBookPublisher());
-        book.setBookPublished(bookRequestDto.getBookPublished());
-        book.setCategory(
-                categoryRepository
-                        .findById(bookRequestDto.getCategoryId())
-                        .orElseThrow(
-                                FindCatogoryException::new
-                        )
+        BookCategory category = null;
+
+        if(bookRequestDto.getCategoryId() != null) {
+            category = categoryRepository.findById(bookRequestDto.getCategoryId()).orElseThrow(
+                    FindCatogoryException::new
+            );
+        }
+
+        Book book = new Book(
+                bookRequestDto.getBookTitle(),
+                bookRequestDto.getBookDescription(),
+                bookRequestDto.getBookAuthor(),
+                bookRequestDto.getBookPublisher(),
+                bookRequestDto.getBookPublished(),
+                category
         );
 
         Book savedBook = bookRepository.save(book);
@@ -58,26 +62,22 @@ public class BookService {
                 FindBookException::new
         );
 
-        if(bookRequestDto.getBookTitle() != null) {
-            book.setBookTitle(bookRequestDto.getBookTitle());
-        }
-        if(bookRequestDto.getBookDescription() != null) {
-            book.setBookDescription(bookRequestDto.getBookDescription());
-        }
-        if(bookRequestDto.getBookAuthor() != null) {
-            book.setBookAuthor(bookRequestDto.getBookAuthor());
-        }
-        if(bookRequestDto.getBookPublished() != null) {
-            book.setBookPublished(bookRequestDto.getBookPublished());
-        }
-        if(bookRequestDto.getBookPublisher() != null) {
-            book.setBookPublisher(bookRequestDto.getBookPublisher());
-        }
+        BookCategory category = book.getCategory();
+
         if(bookRequestDto.getCategoryId() != null) {
-            book.setCategory(categoryRepository.findById(bookRequestDto.getCategoryId()).orElseThrow(
-                    () -> new FindCatogoryException()
-            ));
+            category = categoryRepository.findById(bookRequestDto.getCategoryId()).orElseThrow(
+                    FindCatogoryException::new
+            );
         }
+
+        book.update(
+                bookRequestDto.getBookTitle(),
+                bookRequestDto.getBookDescription(),
+                bookRequestDto.getBookAuthor(),
+                bookRequestDto.getBookPublisher(),
+                bookRequestDto.getBookPublished(),
+                category
+        );
 
         Book savedBook = bookRepository.save(book);
 

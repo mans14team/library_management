@@ -3,9 +3,12 @@ package com.example.library_management.domain.board.dto.response;
 import com.example.library_management.domain.board.entity.Board;
 import com.example.library_management.domain.board.enums.BoardStatus;
 import com.example.library_management.domain.board.enums.BoardType;
+import com.example.library_management.domain.boardComment.dto.response.BoardCommentResponseDto;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class BoardResponseDto {
@@ -20,7 +23,7 @@ public class BoardResponseDto {
     private String username;        // 작성자 이름
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-//    private List<BoardCommentResponseDto> comments;
+    private List<BoardCommentResponseDto> comments;
 
     public BoardResponseDto(Board board) {
         this.id = board.getId();
@@ -34,8 +37,8 @@ public class BoardResponseDto {
         this.username = board.getUser().getUserName();
         this.createdAt = board.getCreatedAt();
         this.modifiedAt = board.getModifiedAt();
-//        this.comments = board.getCommentList().stream()
-//                .map(BoardCommentResponseDto::new)
-//                .collect(Collectors.toList());
+        this.comments = board.getCommentList().stream()
+                .map(BoardCommentResponseDto::new)
+                .collect(Collectors.toList());
     }
 }

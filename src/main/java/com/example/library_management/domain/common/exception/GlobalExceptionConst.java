@@ -18,8 +18,6 @@ public enum GlobalExceptionConst {
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자 권한이 존재하지 않습니다."),
 
     // 상태코드 403
-    NOT_FOUND_CATEGORY(HttpStatus.NOT_FOUND, " 존재하지 않는 카테고리입니다."),
-    NOT_FOUND_BOOK(HttpStatus.NOT_FOUND, "존재하지 않는 책 ID 입니다."),
     UNAUTHORIZED_CREATE(HttpStatus.UNAUTHORIZED, " 게시글 권한이 없습니다."),
     UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED,"리뷰를 수정/삭제할 권한이 없습니다."),
 
@@ -29,6 +27,9 @@ public enum GlobalExceptionConst {
     DELETED_USER(HttpStatus.NOT_FOUND, " 탈퇴된 회원입니다."),
     NOT_FOUND_BOARD(HttpStatus.NOT_FOUND, " 게시글이 존재하지 않습니다."),
     NOT_FOUND_REVIEW(HttpStatus.NOT_FOUND,"리뷰가 존재하지 않습니다."),
+    NOT_FOUND_CATEGORY(HttpStatus.NOT_FOUND, " 존재하지 않는 카테고리입니다."),
+    NOT_FOUND_BOOK(HttpStatus.NOT_FOUND, "존재하지 않는 책 ID 입니다."),
+    NOT_FOUND_BOOK_COPY(HttpStatus.NOT_FOUND, "존재하지 않는 복본 ID 입니다."),
 
 
 

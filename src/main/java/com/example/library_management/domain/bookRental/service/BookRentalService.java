@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -100,5 +101,22 @@ public class BookRentalService {
         bookCopyRepository.save(bookCopy);
 
         return bookRental.getId();
+    }
+
+    // 로그인한 유저의 대여 기록
+    public List<BookRentalResponseDto> getBookRental(UserDetailsImpl userDetails) {
+        List<BookRental> bookRentalHistory = bookRentalRepository.findAllByUser(userDetails.getUser());
+
+        return bookRentalHistory.stream().map(BookRentalResponseDto::new).toList();
+    }
+
+    // 관리자만 조회 가능한 '모든 유저의 대여기록 조회'
+    public List<BookRentalResponseDto> getAllBookRental(UserDetailsImpl userDetails) {
+        if(!validateUser(userDetails)) {
+            throw new AuthorizedAdminException();
+        }
+
+        List<BookRental> bookRentalHistory = bookRentalRepository.findAll();
+        return bookRentalHistory.stream().map(BookRentalResponseDto::new).toList();
     }
 }

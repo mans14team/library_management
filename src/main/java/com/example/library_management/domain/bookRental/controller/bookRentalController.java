@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/rental")
@@ -32,5 +34,18 @@ public class bookRentalController {
     public ResponseEntity<Long> deleteBookRental(@PathVariable("book_rental_id") Long bookRentalId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long deletedBookRental = bookRentalService.deleteBookRental(bookRentalId, userDetails);
         return ResponseEntity.ok(deletedBookRental);
+    }
+
+    // 현재 로그인한 유저의 대여 기록 조회
+    @GetMapping("/me")
+    public ResponseEntity<List<BookRentalResponseDto>> getBookRental(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<BookRentalResponseDto> bookRentalResponseDtoList = bookRentalService.getBookRental(userDetails);
+        return ResponseEntity.ok(bookRentalResponseDtoList);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BookRentalResponseDto>> getAllBookRental(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<BookRentalResponseDto> bookRentalResponseDtoList = bookRentalService.getAllBookRental(userDetails);
+        return ResponseEntity.ok(bookRentalResponseDtoList);
     }
 }

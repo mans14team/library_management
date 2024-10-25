@@ -7,6 +7,7 @@ import com.example.library_management.domain.roomReserve.dto.request.RoomReserve
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveUpdateRequestDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveCreateResponseDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveDeleteResponseDto;
+import com.example.library_management.domain.roomReserve.dto.response.RoomReserveResponseDto;
 import com.example.library_management.domain.roomReserve.dto.response.RoomReserveUpdateResponseDto;
 import com.example.library_management.domain.roomReserve.entity.RoomReserve;
 import com.example.library_management.domain.roomReserve.exception.*;
@@ -14,6 +15,10 @@ import com.example.library_management.domain.roomReserve.repository.RoomReserveR
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +50,7 @@ public class RoomReserveService {
          */
         Room room = roomService.findRoomById(roomId);
 
-        if(room.getRoomStatus() == RoomStatus.NON_AVAILABLE){
+        if (room.getRoomStatus() == RoomStatus.NON_AVAILABLE) {
             throw new RoomReserveUnavailableException();
         }
 
@@ -62,7 +67,7 @@ public class RoomReserveService {
         LocalDateTime reservationDate = roomReserveCreateRequestDto.getReservationDate();
         LocalDateTime reservationDateEnd = roomReserveCreateRequestDto.getReservationDateEnd();
 
-        for(RoomReserve existingReserve: roomReserveList){
+        for (RoomReserve existingReserve : roomReserveList) {
             // 기존 예약 시간
             LocalDateTime existingStartTime = existingReserve.getReservationDate();
             LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
@@ -71,7 +76,7 @@ public class RoomReserveService {
             boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
 
             // 겹치는 예약? -> Exception
-            if(isOverlap){
+            if (isOverlap) {
                 throw new RoomReserveOverlapException();
             }
         }
@@ -99,27 +104,27 @@ public class RoomReserveService {
 
 
         // 예약자의 ID와 요청자의 ID가 동일한지 검증
-        if(!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())){
+        if (!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())) {
             throw new ReservationModificationNotAllowedException();
         }
-        
+
         // 수정 요청받은 시간 정보가 기존 예약과 겹치는지 판별    -   10/24 현재 다른 사용자의 예약정보와 겹칠 수 있는 문제가 있음.
         List<RoomReserve> roomReserveList = room.getRoomReservations();
 
         // 요청받은 예약 시간 변경 정보 - 둘 중 하나 이상의 값이 전달.
-        if(roomReserveUpdateRequestDto.getReservationDate() != null){
+        if (roomReserveUpdateRequestDto.getReservationDate() != null) {
             filteredRoomReserve.updateReservationDate(roomReserveUpdateRequestDto.getReservationDate());
         }
-        if(roomReserveUpdateRequestDto.getReservationDateEnd() != null){
+        if (roomReserveUpdateRequestDto.getReservationDateEnd() != null) {
             filteredRoomReserve.updateReservationDateEnd(roomReserveUpdateRequestDto.getReservationDateEnd());
         }
 
         LocalDateTime reservationDate = filteredRoomReserve.getReservationDate();
         LocalDateTime reservationDateEnd = filteredRoomReserve.getReservationDateEnd();
 
-        for(RoomReserve existingReserve: roomReserveList){
+        for (RoomReserve existingReserve : roomReserveList) {
             // 기존의 자신의 예약과의 비교는 제외
-            if(!existingReserve.getId().equals(filteredRoomReserve.getId())){
+            if (!existingReserve.getId().equals(filteredRoomReserve.getId())) {
                 // 기존 예약 시간
                 LocalDateTime existingStartTime = existingReserve.getReservationDate();
                 LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
@@ -128,7 +133,7 @@ public class RoomReserveService {
                 boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
 
                 // 겹치는 예약? -> Exception
-                if(isOverlap){
+                if (isOverlap) {
                     throw new RoomReserveOverlapException();
                 }
             }
@@ -150,12 +155,39 @@ public class RoomReserveService {
                 .findFirst().orElseThrow(NotFoundRoomReserveException::new);
 
         // 스터디룸 예약을 했던 유저만이 스터디룸 예약을 삭제 할 수 있다.
-        if(!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())){
+        if (!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())) {
             throw new ReservationDeleteNotAllowedException();
         }
 
         roomReserveRepository.delete(filteredRoomReserve);
 
         return new RoomReserveDeleteResponseDto(filteredRoomReserve);
+    }
+
+    /*
+        roomId를 가지는 Room의 모든 RoomReserv를 Get -> 권한 확인 X
+        비 로그인 상태에서 해당 스터디룸의 예약상황을 확인하는데에 사용.
+     */
+    @Transactional(readOnly = true)
+    public Page<RoomReserveResponseDto> findAllRoomReserve(int page, int size, Long roomId) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        Page<RoomReserve> roomReservePage = roomReserveRepository.findAllByRoomId(roomId, pageable);
+
+        return roomReservePage.map(RoomReserveResponseDto::new);
+    }
+
+    /*
+        roomId를 가지는 Room의 RoomReserve에서 userDetails의 user가 신청한 RoomReserve들을 Get
+     */
+    @Transactional(readOnly = true)
+    public Page<RoomReserveResponseDto> findAllRoomReserveByUser(int page, int size, UserDetailsImpl userDetails, Long roomId) {
+        Pageable pageable = PageRequest.of(page - 1, size);  // 페이지는 0부터 시작
+        Long userId = userDetails.getUser().getId();
+
+        Page<RoomReserve> roomReservePage = roomReserveRepository.findAllByUserIdAndRoomId(userId, roomId, pageable);
+
+        return roomReservePage.map(RoomReserveResponseDto::new);
+
     }
 }

@@ -1,9 +1,11 @@
 package com.example.library_management.domain.board.service;
 
 import com.example.library_management.domain.board.dto.request.BoardCreateRequestDto;
+import com.example.library_management.domain.board.dto.request.BoardSearchCondition;
 import com.example.library_management.domain.board.dto.request.BoardUpdateRequestDto;
 import com.example.library_management.domain.board.dto.response.BoardListResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardResponseDto;
+import com.example.library_management.domain.board.dto.response.BoardSearchResult;
 import com.example.library_management.domain.board.entity.Board;
 import com.example.library_management.domain.board.enums.BoardStatus;
 import com.example.library_management.domain.board.enums.BoardType;
@@ -84,8 +86,11 @@ public class BoardService {
                     pageable
             );
         }
+    }
 
-//        return boardList.map(BoardListResponseDto::new);
+    // 게시글 검색 메서드
+    public Page<BoardSearchResult> searchBoardList(BoardSearchCondition condition, Pageable pageable, User user) {
+        return boardRepository.search(condition, user, pageable);
     }
 
     // 게시글 수정

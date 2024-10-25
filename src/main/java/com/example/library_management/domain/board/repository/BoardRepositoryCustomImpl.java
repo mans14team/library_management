@@ -7,7 +7,6 @@ import com.example.library_management.domain.board.enums.BoardSearchType;
 import com.example.library_management.domain.board.enums.BoardStatus;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.enums.UserRole;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;

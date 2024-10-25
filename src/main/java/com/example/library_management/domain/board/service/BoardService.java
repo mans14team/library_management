@@ -52,6 +52,11 @@ public class BoardService {
     public BoardResponseDto getBoard(Long boardId, User user) {
         Board board = findBoardById(boardId);
 
+        // 게시글이 삭제된 상태인지 확인
+        if (board.getStatus() == BoardStatus.INACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         // 비밀글 조회 권한 검증
         validateSecretBoardAccess(board, user);
 
@@ -98,6 +103,11 @@ public class BoardService {
     public BoardResponseDto updateBoard(Long boardId, BoardUpdateRequestDto requestDto, User user) {
         Board board = findBoardById(boardId);
 
+        // 삭제된 게시글 체크 추가
+        if (board.getStatus() == BoardStatus.INACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         // 수정 권한 검증
         validateUpdateAuthority(board, user);
 
@@ -113,6 +123,11 @@ public class BoardService {
     @Transactional
     public String deleteBoard(Long boardId, User user) {
         Board board = findBoardById(boardId);
+
+        // 이미 삭제된 게시글인지 확인하는 로직 추가
+        if (board.getStatus() == BoardStatus.INACTIVE) {
+            throw new BoardNotFoundException();
+        }
 
         // 삭제 권한 검증
         if (!board.getUser().getId().equals(user.getId()) &&

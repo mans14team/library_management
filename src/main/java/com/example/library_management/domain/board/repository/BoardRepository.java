@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface BoardRepository extends JpaRepository<Board, Long> {
+public interface BoardRepository extends JpaRepository<Board, Long>, BoardRepositoryCustom {
 //    @Query("SELECT DISTINCT b FROM Board b JOIN FETCH b.user WHERE b.boardType = :boardType AND b.status = :status ORDER BY b.isPinned DESC, b.createdAt DESC")
 //    Page<BoardListResponseDto> findByBoardTypeAndStatus(@Param("boardType") BoardType boardType,@Param("status") BoardStatus boardStatus, Pageable pageable);   // 모든 게시글 조회 (관리자용)
 

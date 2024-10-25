@@ -12,7 +12,7 @@ public enum GlobalExceptionConst {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, " 새 비밀번호는 8자 이상이어야 하고, 숫자와 대문자를 포함해야 합니다."),
     INVALID_REVIEWSTAR(HttpStatus.BAD_REQUEST, " 리뷰 별점은 1~5점이여야합니다."),
     INSUFFICIENT_DATA_DELIVERED(HttpStatus.BAD_REQUEST, "예약 시작일과 종료일 중 하나는 필수로 입력되어야합니다."),
-    INVALID_REVIEWSTAR(HttpStatus.BAD_REQUEST, "리뷰 별점은 1~5점이여야합니다."),
+    MISMATCHED_COMMENT_BOARD(HttpStatus.BAD_REQUEST, "해당 게시글의 댓글이 아닙니다."),
 
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),
@@ -22,7 +22,6 @@ public enum GlobalExceptionConst {
     // 상태코드 403
     UNAUTHORIZED_CREATE(HttpStatus.UNAUTHORIZED, " 게시글 권한이 없습니다."),
     UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED," 리뷰를 수정/삭제할 권한이 없습니다."),
-    UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED,"리뷰를 수정/삭제할 권한이 없습니다."),
     UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.UNAUTHORIZED, " 댓글 접근에 권한이 없습니다."),
     UNAUTHORIZED_ROOMCONTROL(HttpStatus.UNAUTHORIZED, " 스터디룸 관리 권한이 없습니다."),
     UNAUTHORIZED_RESERVATION_MODIFICATION(HttpStatus.UNAUTHORIZED, "본인의 스터디룸 예약만 수정할 수 있습니다."),
@@ -44,7 +43,7 @@ public enum GlobalExceptionConst {
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),
     RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다."),
-    ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다.");
+    ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다."),
     ROOM_RESERVE_OVERLAP(HttpStatus.CONFLICT, "예약 시간이 겹쳐 예약이 불가능합니다."),
 
     // 상태코드 422

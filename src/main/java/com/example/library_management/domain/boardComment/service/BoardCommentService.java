@@ -5,6 +5,7 @@ import com.example.library_management.domain.board.service.BoardService;
 import com.example.library_management.domain.boardComment.dto.request.BoardCommentRequestDto;
 import com.example.library_management.domain.boardComment.dto.response.BoardCommentResponseDto;
 import com.example.library_management.domain.boardComment.entity.BoardComment;
+import com.example.library_management.domain.boardComment.exception.CommentMismatchException;
 import com.example.library_management.domain.boardComment.exception.CommentNouFoundException;
 import com.example.library_management.domain.boardComment.exception.UnauthorizedCommentAccessException;
 import com.example.library_management.domain.boardComment.repository.BoardCommentRepository;
@@ -46,6 +47,11 @@ public class BoardCommentService {
 
         BoardComment comment = findCommentById(commentId);
 
+        // 댓글이 해당 게시글의 것인지 확인하는 로직 추가
+        if (!comment.getBoard().getId().equals(boardId)) {
+            throw new CommentMismatchException();
+        }
+
         // 권한 검증 (작성자 또는 관리자)
         validateCommentAccess(comment, user);
 
@@ -66,6 +72,11 @@ public class BoardCommentService {
     @Transactional
     public String deleteComment(Long boardId, Long commentId, User user) {
         BoardComment comment = findCommentById(commentId);
+
+        // 댓글이 해당 게시글의 것인지 확인하는 로직 추가
+        if (!comment.getBoard().getId().equals(boardId)) {
+            throw new CommentMismatchException();
+        }
 
         // 권한 검증 (작성자 또는 관리자)
         validateCommentAccess(comment, user);

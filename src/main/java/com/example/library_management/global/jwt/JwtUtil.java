@@ -40,7 +40,7 @@ public class JwtUtil {
     // refresh 토큰 만료시간
     private final long REFRESH_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
-    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
 
     @Value("${jwt.secret.key}") // Base64 Encode 한 SecretKey
@@ -164,6 +164,7 @@ public class JwtUtil {
 
     // Refresh Token 검증 (Access Token 검증과 동일한 로직 사용)
     public boolean validateRefreshToken(String token) {
+        logger.info("JWT refresh token : "+token);
         return validateToken(token);
     }
 

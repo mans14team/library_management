@@ -22,6 +22,7 @@ public class RentalNotifyService {
 
    //반납 기한에 따른 알림을 생성하는 메서드
     public void sendRentalReminders(){
+
         List<BookRental> rentals3DaysBefore = getRentalsDueIn(3);
         sendReminders(rentals3DaysBefore,"대여 만료 3일전입니다. 책 반납 준비 해주세요!");
         List<BookRental> rentals1DaysBefore = getRentalsDueIn(1);
@@ -30,6 +31,7 @@ public class RentalNotifyService {
         sendReminders(rentalsDaysBefore,"오늘이 반납일입니다. 책 반납해주세요! ");
     }
 
+    // 알람 생성 로직으로 알람을 보낼 사람들의 정보를 보내는 메서드
     private void sendReminders(List<BookRental> rentalList, String message) {
 
         for(BookRental list : rentalList){

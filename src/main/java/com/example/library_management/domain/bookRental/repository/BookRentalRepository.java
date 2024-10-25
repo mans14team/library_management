@@ -18,6 +18,6 @@ public interface BookRentalRepository extends JpaRepository<BookRental, Long> {
     List<BookRental> findAllByUser(User user);
 
 
-@Query("select br from BookRental where")
-    List<BookRental> findAllRentalDate(@Param("targetDate") LocalDate targetDate);
+    @Query("select br from BookRental br where br.returnDate=null and br.rentalDate=:rentalDate")
+    List<BookRental> findAllRentalDate(@Param("rentalDate") LocalDate targetDate);
 }

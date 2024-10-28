@@ -17,7 +17,7 @@ public class Notification {
     private Long id;
 
     private String message;  // 알림 메시지
-    private boolean sent;  // 알림 전송 여부
+    private boolean sent ;  // 알림 전송 여부
     private LocalDateTime timestamp; // 알림 생성 시간
 
     @ManyToOne
@@ -28,9 +28,12 @@ public class Notification {
     public Notification(User user, String message) {
         this.user = user;
         this.message = message;
+        this.sent = false;
+        this.timestamp = LocalDateTime.now();
     }
 
     public void updateAsSent() {
+
         this.sent = true;
     }
 }

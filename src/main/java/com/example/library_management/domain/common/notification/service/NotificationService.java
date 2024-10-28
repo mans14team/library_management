@@ -34,7 +34,7 @@ public class NotificationService {
     //이메일로 전송되지 않은 알림 전송
     public void sendEmailNotifications() {
 
-        List<Notification> unNotificationList = notificationRepository.findBysentfalse();
+        List<Notification> unNotificationList = notificationRepository.findBySentFalse();
 
         for (Notification notification : unNotificationList) {
             User user = notification.getUser();

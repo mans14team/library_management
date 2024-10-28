@@ -12,6 +12,7 @@ public enum GlobalExceptionConst {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, " 새 비밀번호는 8자 이상이어야 하고, 숫자와 대문자를 포함해야 합니다."),
     INVALID_REVIEWSTAR(HttpStatus.BAD_REQUEST, " 리뷰 별점은 1~5점이여야합니다."),
     INSUFFICIENT_DATA_DELIVERED(HttpStatus.BAD_REQUEST, "예약 시작일과 종료일 중 하나는 필수로 입력되어야합니다."),
+    MISMATCHED_COMMENT_BOARD(HttpStatus.BAD_REQUEST, "해당 게시글의 댓글이 아닙니다."),
 
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),

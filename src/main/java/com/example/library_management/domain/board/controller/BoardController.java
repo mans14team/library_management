@@ -1,9 +1,11 @@
 package com.example.library_management.domain.board.controller;
 
 import com.example.library_management.domain.board.dto.request.BoardCreateRequestDto;
+import com.example.library_management.domain.board.dto.request.BoardSearchCondition;
 import com.example.library_management.domain.board.dto.request.BoardUpdateRequestDto;
 import com.example.library_management.domain.board.dto.response.BoardListResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardResponseDto;
+import com.example.library_management.domain.board.dto.response.BoardSearchResult;
 import com.example.library_management.domain.board.enums.BoardType;
 import com.example.library_management.domain.board.service.BoardService;
 import com.example.library_management.global.config.ApiResponse;
@@ -66,8 +68,21 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.success(new PageImpl<>(boardList.getContent(), boardList.getPageable(), boardList.getTotalElements())));
     }
 
-    // 게시글 검색 api
+    /**
+     * 게시글 검색 api
+     * @param condition
+     * @param pageable
+     * @param userDetails
+     * @return 검색 결과 리스트
+     */
+    @GetMapping("/board/search")
+    public ResponseEntity<ApiResponse<Page<BoardSearchResult>>> searchBoardList(@ModelAttribute BoardSearchCondition condition,
+                                                                                @PageableDefault(size = 10, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                                                                @AuthenticationPrincipal UserDetailsImpl userDetails){
+        Page<BoardSearchResult> searchResultList = boardService.searchBoardList(condition, pageable, userDetails.getUser());
 
+        return ResponseEntity.ok(ApiResponse.success(searchResultList));
+    }
 
     /**
      * 게시글 수정 api( 일부분만 수정될 수 있도록 )

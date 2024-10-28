@@ -2,6 +2,7 @@ package com.example.library_management.book;
 
 import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.book.dto.BookResponseDto;
+import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.exception.AuthorizedAdminException;
 import com.example.library_management.domain.book.repository.BookRepository;
@@ -18,6 +19,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -145,5 +148,58 @@ public class BookServiceTest2 {
         assertThrows(AuthorizedAdminException.class, () -> bookService.addBook(bookRequestDto, userDetails2));
     }
 
+    @Test
+    void testGetBookById() {
+        // Given
+        Long id = 1L;
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+
+        BookResponseDto responseDto = bookService.getBookById(id);
+        assertNotNull(responseDto);
+        assertEquals("아프리카 청춘", responseDto.getBookTitle());
+    }
+
+    @Test
+    void testGetBooksByCategory() {
+        Long categoryId = 1L;
+        Long categoryId2 = 2L;
+
+        Book book1 = new Book();
+        book1.setId(1L);
+        book1.setBookTitle("아프리카 청춘");
+        book1.setCategory(bookCategory1);
+
+        Book book2 = new Book();
+        book2.setId(2L);
+        book2.setBookTitle("개미");
+        book2.setCategory(bookCategory1);
+
+        Book book3 = new Book();
+        book3.setId(3L);
+        book3.setBookTitle("과학이란");
+        book3.setCategory(bookCategory2);
+
+        List<Book> books1 = new ArrayList<>();
+        books1.add(book1);
+        books1.add(book2);
+
+        List<Book> books2 = new ArrayList<>();
+        books2.add(book3);
+
+
+        when(bookCategoryRepository.findById(categoryId)).thenReturn(Optional.of(bookCategory1));
+        when(bookCategoryRepository.findById(categoryId2)).thenReturn(Optional.of(bookCategory2));
+        when(bookRepository.findAllByCategory(bookCategory1)).thenReturn(books1);
+        when(bookRepository.findAllByCategory(bookCategory2)).thenReturn(books2);
+
+        List<BookResponseDtos> result1 = bookService.getBooksByCategory(categoryId);
+        List<BookResponseDtos> result2 = bookService.getBooksByCategory(categoryId2);
+
+        assertEquals(2, result1.size());
+        assertEquals(1, result2.size());
+        assertEquals("아프리카 청춘", result1.get(0).getBookTitle());
+        assertEquals("과학이란", result2.get(0).getBookTitle());
+    }
 
 }

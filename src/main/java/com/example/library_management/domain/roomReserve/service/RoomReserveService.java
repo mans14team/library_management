@@ -32,11 +32,11 @@ public class RoomReserveService {
     private final RoomReserveRepository roomReserveRepository;
     private final RoomService roomService;
 
-    @Transactional
-    public RoomReserveCreateResponseDto createRoomReserve(UserDetailsImpl userDetails, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
+    @Transactional(timeout = 3)
+    public RoomReserveCreateResponseDto createRoomReserve(User user, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         // 요청자 권한 확인    - 멤버쉽 권한 만이 스터디룸 예약을 할 수 있다.
         // User 객체의 멤버쉽 권한 확인 로직 미추가상태. - 10/23
-        User user = userDetails.getUser();
+
 
         // 예약하고자 하는 roomId 의 예약 가능 여부 확인.
         /*
@@ -62,7 +62,10 @@ public class RoomReserveService {
          Case 3: 새로운 예약이 기존 예약을 덮거나, 기존 예약이 새로운 예약을 덮는 경우.
          */
 
-        List<RoomReserve> roomReserveList = room.getRoomReservations();
+        //List<RoomReserve> roomReserveList = room.getRoomReservations();
+        
+        // 동시성 제어 로직 적용
+        List<RoomReserve> roomReserveList = roomReserveRepository.findAllByRoomIdWithLock(roomId);
 
         LocalDateTime reservationDate = roomReserveCreateRequestDto.getReservationDate();
         LocalDateTime reservationDateEnd = roomReserveCreateRequestDto.getReservationDateEnd();
@@ -91,9 +94,9 @@ public class RoomReserveService {
     }
 
     @Transactional
-    public RoomReserveUpdateResponseDto updateRoomReserve(UserDetailsImpl userDetails, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
+    public RoomReserveUpdateResponseDto updateRoomReserve(User user, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
         // 요청자 권한 확인    - 해당 스터디룸 예약을 했던 유저만이 스터디룸 예약을 수정 할 수 있다.
-        User user = userDetails.getUser();
+
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
@@ -104,11 +107,11 @@ public class RoomReserveService {
 
 
         // 예약자의 ID와 요청자의 ID가 동일한지 검증
-        if (!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())) {
+        if (!filteredRoomReserve.getUser().getId().equals(user.getId())) {
             throw new ReservationModificationNotAllowedException();
         }
 
-        // 수정 요청받은 시간 정보가 기존 예약과 겹치는지 판별    -   10/24 현재 다른 사용자의 예약정보와 겹칠 수 있는 문제가 있음.
+        // 수정 요청받은 시간 정보가 기존 예약과 겹치는지 판별
         List<RoomReserve> roomReserveList = room.getRoomReservations();
 
         // 요청받은 예약 시간 변경 정보 - 둘 중 하나 이상의 값이 전달.
@@ -143,9 +146,9 @@ public class RoomReserveService {
     }
 
     @Transactional
-    public RoomReserveDeleteResponseDto deleteRoomReserve(UserDetailsImpl userDetails, Long roomId, Long reserveId) {
+    public RoomReserveDeleteResponseDto deleteRoomReserve(User user, Long roomId, Long reserveId) {
         // 요청자 권한 확인 - 멤버쉽 권한이 아니면 예외처리.
-        User user = userDetails.getUser();
+
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
@@ -155,7 +158,7 @@ public class RoomReserveService {
                 .findFirst().orElseThrow(NotFoundRoomReserveException::new);
 
         // 스터디룸 예약을 했던 유저만이 스터디룸 예약을 삭제 할 수 있다.
-        if (!filteredRoomReserve.getUser().getId().equals(userDetails.getUser().getId())) {
+        if (!filteredRoomReserve.getUser().getId().equals(user.getId())) {
             throw new ReservationDeleteNotAllowedException();
         }
 
@@ -181,9 +184,9 @@ public class RoomReserveService {
         roomId를 가지는 Room의 RoomReserve에서 userDetails의 user가 신청한 RoomReserve들을 Get
      */
     @Transactional(readOnly = true)
-    public Page<RoomReserveResponseDto> findAllRoomReserveByUser(int page, int size, UserDetailsImpl userDetails, Long roomId) {
+    public Page<RoomReserveResponseDto> findAllRoomReserveByUser(int page, int size, User user, Long roomId) {
         Pageable pageable = PageRequest.of(page - 1, size);  // 페이지는 0부터 시작
-        Long userId = userDetails.getUser().getId();
+        Long userId = user.getId();
 
         Page<RoomReserve> roomReservePage = roomReserveRepository.findAllByUserIdAndRoomId(userId, roomId, pageable);
 

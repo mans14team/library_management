@@ -59,7 +59,7 @@ public class BoardCommentController {
      * @param boardId
      * @param commentId
      * @param userDetails
-     * @return "댓글 삭제가 완료도었습니다."
+     * @return "댓글 삭제가 완료되었습니다."
      */
     @DeleteMapping("/comment/{commentId}")
     public ResponseEntity<ApiResponse<String>> deleteComment(@PathVariable Long boardId, @PathVariable Long commentId, @AuthenticationPrincipal UserDetailsImpl userDetails){

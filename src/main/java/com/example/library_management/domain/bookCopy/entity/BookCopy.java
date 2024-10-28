@@ -6,6 +6,7 @@ import com.example.library_management.domain.bookReservation.entity.BookReservat
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "book_copy")
 @NoArgsConstructor
 public class BookCopy {

@@ -1,12 +1,13 @@
-package com.example.library_management.book;
+package com.example.library_management.domain.book.service;
 
 import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.book.dto.BookResponseDto;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.exception.AuthorizedAdminException;
+import com.example.library_management.domain.book.exception.FindBookException;
+import com.example.library_management.domain.book.exception.FindCatogoryException;
 import com.example.library_management.domain.book.repository.BookRepository;
-import com.example.library_management.domain.book.service.BookService;
 import com.example.library_management.domain.bookCategory.entity.BookCategory;
 import com.example.library_management.domain.bookCategory.repository.BookCategoryRepository;
 import com.example.library_management.domain.user.entity.User;
@@ -28,7 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class BookServiceTest2 {
+public class BookServiceTest {
     @InjectMocks
     private BookService bookService;
 
@@ -200,6 +201,43 @@ public class BookServiceTest2 {
         assertEquals(1, result2.size());
         assertEquals("아프리카 청춘", result1.get(0).getBookTitle());
         assertEquals("과학이란", result2.get(0).getBookTitle());
+    }
+
+
+    @Test
+    void testUpdateBookUnauthorized() {
+        // Given
+        when(bookRepository.findById(any(Long.class))).thenReturn(Optional.of(book));
+
+        // When & Then
+        assertThrows(AuthorizedAdminException.class, () -> bookService.updateBook(1L, bookRequestDto, userDetails2));
+    }
+
+    @Test
+    void testDeleteBookUnauthorized() {
+        // Given
+        when(bookRepository.findById(any(Long.class))).thenReturn(Optional.of(book));
+
+        // When & Then
+        assertThrows(AuthorizedAdminException.class, () -> bookService.deleteBook(1L, userDetails2));
+    }
+
+    @Test
+    void testGetBookByInvalidId() {
+        // Given
+        when(bookRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(FindBookException.class, () -> bookService.getBookById(1L));
+    }
+
+    @Test
+    void testAddBookWithNonexistentCategory() {
+        // Given
+        when(bookCategoryRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(FindCatogoryException.class, () -> bookService.addBook(bookRequestDto, userDetails));
     }
 
 }

@@ -27,17 +27,17 @@ public class RoomController {
 
     @PostMapping("/library/rooms")
     public ResponseEntity<RoomCreateResponseDto> createRoom(@AuthenticationPrincipal UserDetailsImpl userDetails, @Valid @RequestBody RoomCreateRequestDto roomCreateRequestDto) {
-        return ResponseEntity.ok(roomService.createRoom(userDetails, roomCreateRequestDto));
+        return ResponseEntity.ok(roomService.createRoom(userDetails.getUser(), roomCreateRequestDto));
     }
 
     @PatchMapping("/library/rooms/{roomId}")
     public ResponseEntity<RoomUpdateResponseDto> updateRoom(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long roomId, @RequestBody RoomUpdateRequestDto roomUpdateRequestDto) {
-        return ResponseEntity.ok(roomService.updateRoom(userDetails, roomId, roomUpdateRequestDto));
+        return ResponseEntity.ok(roomService.updateRoom(userDetails.getUser(), roomId, roomUpdateRequestDto));
     }
 
     @DeleteMapping("/library/rooms/{roomId}")
     public ResponseEntity<RoomDeleteResponseDto> deleteRoom(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long roomId) {
-        return ResponseEntity.ok(roomService.deleteRoom(userDetails, roomId));
+        return ResponseEntity.ok(roomService.deleteRoom(userDetails.getUser(), roomId));
     }
 
 }

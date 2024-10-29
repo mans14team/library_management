@@ -10,6 +10,8 @@ import com.example.library_management.domain.room.entity.Room;
 import com.example.library_management.domain.room.exception.NotFoundRoomException;
 import com.example.library_management.domain.room.exception.UnauthorizedRoomAccessException;
 import com.example.library_management.domain.room.repository.RoomRepository;
+import com.example.library_management.domain.user.entity.User;
+import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,9 +34,9 @@ public class RoomService {
     }
 
     @Transactional
-    public RoomCreateResponseDto createRoom(UserDetailsImpl userDetails, RoomCreateRequestDto roomCreateRequestDto) {
+    public RoomCreateResponseDto createRoom(User user, RoomCreateRequestDto roomCreateRequestDto) {
         // 요청자 권한 확인
-        validateRoomAccess(userDetails);
+        validateRoomAccess(user);
 
         // 로직
         Room room = Room.createRoom(roomCreateRequestDto);
@@ -45,9 +47,9 @@ public class RoomService {
     }
 
     @Transactional
-    public RoomUpdateResponseDto updateRoom(UserDetailsImpl userDetails, Long roomId, RoomUpdateRequestDto roomUpdateRequestDto) {
+    public RoomUpdateResponseDto updateRoom(User user, Long roomId, RoomUpdateRequestDto roomUpdateRequestDto) {
         // 요청자 권한 확인
-        validateRoomAccess(userDetails);
+        validateRoomAccess(user);
 
         // 로직
         Room updatedRoom = findRoomById(roomId);
@@ -58,9 +60,9 @@ public class RoomService {
     }
 
     @Transactional
-    public RoomDeleteResponseDto deleteRoom(UserDetailsImpl userDetails, Long roomId) {
+    public RoomDeleteResponseDto deleteRoom(User user, Long roomId) {
         // 요청자 권한 확인
-        validateRoomAccess(userDetails);
+        validateRoomAccess(user);
 
         // 로직
         Room deletedRoom = findRoomById(roomId);
@@ -80,11 +82,10 @@ public class RoomService {
     }
 
     // 요청자 권한 확인
-    public void validateRoomAccess(UserDetailsImpl userDetails){
+    public void validateRoomAccess(User user){
         // 사용자가 ADMIN 권한을 가지고 있는지 확인
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-        System.out.println("권한 :"+userDetails.getAuthorities());
+        boolean isAdmin = user.getRole().equals(UserRole.ROLE_ADMIN);
+        System.out.println("권한 :"+user.getRole());
 
         if (!isAdmin) {
             throw new UnauthorizedRoomAccessException();

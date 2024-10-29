@@ -16,6 +16,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "book")
 public class Book {

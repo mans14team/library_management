@@ -23,16 +23,23 @@ public class NotificationService {
     private final JavaMailSender mailSender;
 
     //새로운 알림 생성 후 저장
-    public Notification createNotification(NotificationRequestDto requestDto) {
+
+    public void createNotification(NotificationRequestDto requestDto) {
+        log.info("알림 생성 로직 ");
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(NotFoundUserException::new);
 
         Notification notification = new Notification(user, requestDto.getMessage());
-        return notificationRepository.save(notification);
+
+        log.info("notification  :" + notification.getUser());
+        notificationRepository.save(notification);
+
+        sendEmailNotifications();
     }
 
     //이메일로 전송되지 않은 알림 전송
     public void sendEmailNotifications() {
+        log.info("이메일로 보내기전: 로그 확인");
 
         List<Notification> unNotificationList = notificationRepository.findBySentFalse();
 

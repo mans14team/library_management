@@ -13,11 +13,14 @@ public enum GlobalExceptionConst {
     INVALID_REVIEWSTAR(HttpStatus.BAD_REQUEST, " 리뷰 별점은 1~5점이여야합니다."),
     INSUFFICIENT_DATA_DELIVERED(HttpStatus.BAD_REQUEST, "예약 시작일과 종료일 중 하나는 필수로 입력되어야합니다."),
     MISMATCHED_COMMENT_BOARD(HttpStatus.BAD_REQUEST, "해당 게시글의 댓글이 아닙니다."),
+    INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "결제 금액이 유효하지 않습니다."),
+    INVALID_PAYMENT_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 결제 요청입니다."),
 
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),
     UNAUTHORIZED_OWNERTOKEN(HttpStatus.UNAUTHORIZED, " 유저 토큰이 틀렸습니다."),
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, " 관리자 권한이 존재하지 않습니다."),
+    UNAUTHORIZED_PAYMENT(HttpStatus.UNAUTHORIZED, "결제 인증에 실패했습니다."),
 
     // 상태코드 403
     UNAUTHORIZED_CREATE(HttpStatus.UNAUTHORIZED, " 게시글 권한이 없습니다."),
@@ -40,6 +43,8 @@ public enum GlobalExceptionConst {
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, " 댓글을 찾을 수 없습니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, " 스터디룸이 존재하지 않습니다."),
     NOT_FOUND_ROOM_RESERVE(HttpStatus.NOT_FOUND, " 스터디룸 예약이 존재하지 않습니다."),
+    NOT_FOUND_PAYMENT(HttpStatus.NOT_FOUND, "결제 내역을 찾을 수 없습니다."),
+    NOT_FOUND_MEMBERSHIP(HttpStatus.NOT_FOUND, "멤버십 정보를 찾을 수 없습니다."),
     NOT_FOUND_RENTABLE_BOOKCOPY(HttpStatus.NOT_FOUND, "대여 가능한 서적이 존재하지 않습니다."),
     NOT_FOUND_BOOK_RESERVATION(HttpStatus.NOT_FOUND, "존재하지 않는 책 대여 예약 정보입니다."),
 
@@ -48,9 +53,15 @@ public enum GlobalExceptionConst {
     RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다."),
     ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다."),
     ROOM_RESERVE_OVERLAP(HttpStatus.CONFLICT, "예약 시간이 겹쳐 예약이 불가능합니다."),
+    DUPLICATE_PAYMENT(HttpStatus.CONFLICT, "이미 처리된 결제입니다."),
+    ACTIVE_MEMBERSHIP_EXISTS(HttpStatus.CONFLICT, "이미 활성화된 멤버십이 존재합니다."),
 
     // 상태코드 422
-    ROOM_RESERVE_UNPROCESSABLE(HttpStatus.UNPROCESSABLE_ENTITY, "해당 스터디룸 에약이 불가능합니다.");
+    ROOM_RESERVE_UNPROCESSABLE(HttpStatus.UNPROCESSABLE_ENTITY, "해당 스터디룸 에약이 불가능합니다."),
+
+    // 상태코드 500
+    PAYMENT_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 서버 오류가 발생했습니다."),
+    PAYMENT_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

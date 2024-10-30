@@ -12,6 +12,9 @@ import com.example.library_management.domain.bookRental.exception.AlreadyReturnE
 import com.example.library_management.domain.bookRental.exception.NotFoundBookRenalHistoryException;
 import com.example.library_management.domain.bookRental.exception.RentableException;
 import com.example.library_management.domain.bookRental.repository.BookRentalRepository;
+import com.example.library_management.domain.bookReservation.entity.BookReservation;
+import com.example.library_management.domain.bookReservation.entity.ReservatationState;
+import com.example.library_management.domain.bookReservation.repository.BookReservationRepository;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.domain.user.exception.NotFoundUserException;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class BookRentalService {
     private final BookRentalRepository bookRentalRepository;
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
+    private final BookReservationRepository bookReservationRepository;
 
     public Boolean validateUser(UserDetailsImpl userDetails) {
         return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
@@ -41,14 +46,24 @@ public class BookRentalService {
             throw new AuthorizedAdminException();
         }
 
+        User user = userRepository.findById(bookRentalRequestDto.getUserId()).orElseThrow(NotFoundUserException::new);
+
         BookCopy bookCopy = bookCopyRepository.findById(bookRentalRequestDto.getBookCopyId()).orElseThrow(FindBookCopyException::new);
 
         if(!bookCopy.isRentable()) {
-            throw new RentableException();
+            // 예약 목록 확인하기.
+            Optional<BookReservation> bookReservationOpt = bookReservationRepository.findAllByUser(user).stream().filter(br -> br.getUser() == user && br.getState() == ReservatationState.ACTIVE && br.getBookCopy() == bookCopy).findFirst();
+
+            if(!bookReservationOpt.isPresent()) {
+                throw new RentableException();
+            }
+
+            BookReservation bookReservation = bookReservationOpt.get();
+
+            bookReservation.finishReservation();
+
+            bookReservationRepository.save(bookReservation);
         }
-
-        User user = userRepository.findById(bookRentalRequestDto.getUserId()).orElseThrow(NotFoundUserException::new);
-
         // 대여하려는 유저의 상태 체크 ex) 연체 패널티 상태이거나 대여가능 권수를 초과한 경우
 
         LocalDateTime rentDate = LocalDateTime.now();

@@ -10,6 +10,7 @@ import com.example.library_management.domain.bookCopy.repository.BookCopyReposit
 import com.example.library_management.domain.bookReservation.dto.BookReservationRequestDto;
 import com.example.library_management.domain.bookReservation.dto.BookReservationResponseDto;
 import com.example.library_management.domain.bookReservation.entity.BookReservation;
+import com.example.library_management.domain.bookReservation.entity.ReservatationState;
 import com.example.library_management.domain.bookReservation.exception.FindBookReservationException;
 import com.example.library_management.domain.bookReservation.exception.NotRentableBookException;
 import com.example.library_management.domain.bookReservation.repository.BookReservationRepository;
@@ -63,7 +64,7 @@ public class BookReservationService {
         return new BookReservationResponseDto(savedBookReservation);
     }
 
-    // 기한 만료시 자동으로 호출될 로직
+    // 관리자 전용 예약 내역 삭제 기능
     @Transactional
     public Long deleteBookReservation(Long bookReservationId, UserDetailsImpl userDetails) {
         if(!validateUserAdmin(userDetails)){
@@ -86,6 +87,8 @@ public class BookReservationService {
         return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
     }
 
+
+    // 관리자가 전체 예약 내역 조회
     public List<BookReservationResponseDto> getBookReservations(UserDetailsImpl userDetails) {
         if(!validateUserAdmin(userDetails)){
             throw new AuthorizedAdminException();
@@ -96,6 +99,7 @@ public class BookReservationService {
         return bookReservationList.stream().map(BookReservationResponseDto::new).toList();
     }
 
+    // 유저가 자신의 예약 내역 조회
     public List<BookReservationResponseDto> getBookReservationsByUser(UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
 
@@ -104,4 +108,14 @@ public class BookReservationService {
     }
 
     // 예약일 + 3일째에 대여 안하면 예약 취소
+    @Transactional
+    public void expireOverdueReservations() {
+        LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
+        List<BookReservation> overdueReservations = bookReservationRepository
+                .findByReservationDateBeforeAndState(threeDaysAgo, ReservatationState.ACTIVE);
+
+        for (BookReservation bookReservation : overdueReservations) {
+            bookReservation.expireReservation();
+        }
+    }
 }

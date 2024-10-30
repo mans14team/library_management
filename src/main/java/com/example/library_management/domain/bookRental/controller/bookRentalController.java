@@ -3,6 +3,7 @@ package com.example.library_management.domain.bookRental.controller;
 import com.example.library_management.domain.bookRental.dto.BookRentalRequestDto;
 import com.example.library_management.domain.bookRental.dto.BookRentalResponseDto;
 import com.example.library_management.domain.bookRental.entity.BookRental;
+import com.example.library_management.domain.bookRental.exception.DiffrentBookCopyReservationException;
 import com.example.library_management.domain.bookRental.service.BookRentalService;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class bookRentalController {
     private final BookRentalService bookRentalService;
 
     @PostMapping
-    public ResponseEntity<BookRentalResponseDto> submitBookRental(@RequestBody BookRentalRequestDto bookRentalRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<BookRentalResponseDto> submitBookRental(@RequestBody BookRentalRequestDto bookRentalRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) throws DiffrentBookCopyReservationException {
         BookRentalResponseDto bookRentalResponseDto = bookRentalService.submitBookRental(bookRentalRequestDto, userDetails);
         return ResponseEntity.ok(bookRentalResponseDto);
     }

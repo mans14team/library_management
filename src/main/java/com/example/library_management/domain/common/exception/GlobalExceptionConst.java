@@ -48,6 +48,7 @@ public enum GlobalExceptionConst {
     RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다."),
     ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다."),
     ROOM_RESERVE_OVERLAP(HttpStatus.CONFLICT, "예약 시간이 겹쳐 예약이 불가능합니다."),
+    OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "다른 사용자에 의해 예약 충돌이 발생하였습니다, 새로고침 후 재시도해주세요."),
 
     // 상태코드 422
     ROOM_RESERVE_UNPROCESSABLE(HttpStatus.UNPROCESSABLE_ENTITY, "해당 스터디룸 에약이 불가능합니다.");

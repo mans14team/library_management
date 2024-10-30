@@ -13,9 +13,9 @@ import com.example.library_management.domain.roomReserve.entity.RoomReserve;
 import com.example.library_management.domain.roomReserve.exception.*;
 import com.example.library_management.domain.roomReserve.repository.RoomReserveRepository;
 import com.example.library_management.domain.user.entity.User;
-import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +32,7 @@ public class RoomReserveService {
     private final RoomReserveRepository roomReserveRepository;
     private final RoomService roomService;
 
-    @Transactional(timeout = 3)
+    @Transactional
     public RoomReserveCreateResponseDto createRoomReserve(User user, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         // 요청자 권한 확인    - 멤버쉽 권한 만이 스터디룸 예약을 할 수 있다.
         // User 객체의 멤버쉽 권한 확인 로직 미추가상태. - 10/23
@@ -62,35 +62,16 @@ public class RoomReserveService {
          Case 3: 새로운 예약이 기존 예약을 덮거나, 기존 예약이 새로운 예약을 덮는 경우.
          */
 
-        //List<RoomReserve> roomReserveList = room.getRoomReservations();
-        
-        // 동시성 제어 로직 적용
-        List<RoomReserve> roomReserveList = roomReserveRepository.findAllByRoomIdWithLock(roomId);
-
-        LocalDateTime reservationDate = roomReserveCreateRequestDto.getReservationDate();
-        LocalDateTime reservationDateEnd = roomReserveCreateRequestDto.getReservationDateEnd();
-
-        for (RoomReserve existingReserve : roomReserveList) {
-            // 기존 예약 시간
-            LocalDateTime existingStartTime = existingReserve.getReservationDate();
-            LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
-
-            // 예약이 겹치는 Case 3가지를 판별하는 로직.
-            boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
-
-            // 겹치는 예약? -> Exception
-            if (isOverlap) {
-                throw new RoomReserveOverlapException();
-            }
-        }
-
-        // 로직
+        checkReserveOverlap(roomId, roomReserveCreateRequestDto.getReservationDate(), roomReserveCreateRequestDto.getReservationDateEnd());
 
         RoomReserve roomReserve = RoomReserve.createReservation(room, user, roomReserveCreateRequestDto);
 
-        RoomReserve savedRoomReserve = roomReserveRepository.save(roomReserve);
-
-        return new RoomReserveCreateResponseDto(savedRoomReserve);
+        try {
+            RoomReserve savedRoomReserve = roomReserveRepository.save(roomReserve);
+            return new RoomReserveCreateResponseDto(savedRoomReserve);
+        } catch (OptimisticLockingFailureException e) {
+            throw new OptimisticLockConflictException();
+        }
     }
 
     @Transactional
@@ -101,48 +82,28 @@ public class RoomReserveService {
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
 
-        RoomReserve filteredRoomReserve = room.getRoomReservations().stream()
-                .filter(reserve -> reserve.getId().equals(reserveId))
-                .findFirst().orElseThrow(NotFoundRoomReserveException::new);
-
+        RoomReserve filteredRoomReserve = findRoomReserveById(room, reserveId);
 
         // 예약자의 ID와 요청자의 ID가 동일한지 검증
-        if (!filteredRoomReserve.getUser().getId().equals(user.getId())) {
-            throw new ReservationModificationNotAllowedException();
-        }
+        validateUserReservation(user, filteredRoomReserve);
+
+        // 예약 정보 업데이트
+        updateRoomReserveInfo(filteredRoomReserve, roomReserveUpdateRequestDto);
 
         // 수정 요청받은 시간 정보가 기존 예약과 겹치는지 판별
-        List<RoomReserve> roomReserveList = room.getRoomReservations();
+        checkReservationOverlap(room.getRoomReservations(), filteredRoomReserve);
 
-        // 요청받은 예약 시간 변경 정보 - 둘 중 하나 이상의 값이 전달.
-        if (roomReserveUpdateRequestDto.getReservationDate() != null) {
-            filteredRoomReserve.updateReservationDate(roomReserveUpdateRequestDto.getReservationDate());
+        /*
+         @Transactional을 걸었기 때문에 데이터 변경시 Dirty Checking이 발생하지만, 낙관적 락을 적용하려면
+         명시적으로 save()를 호출해야 합니다.
+         */
+        try {
+            // 저장 시 낙관적 락을 사용하여 충돌 시 예외 발생
+            RoomReserve savedRoomReserve = roomReserveRepository.save(filteredRoomReserve);
+            return new RoomReserveUpdateResponseDto(savedRoomReserve);
+        } catch (OptimisticLockingFailureException e) {
+            throw new OptimisticLockConflictException();
         }
-        if (roomReserveUpdateRequestDto.getReservationDateEnd() != null) {
-            filteredRoomReserve.updateReservationDateEnd(roomReserveUpdateRequestDto.getReservationDateEnd());
-        }
-
-        LocalDateTime reservationDate = filteredRoomReserve.getReservationDate();
-        LocalDateTime reservationDateEnd = filteredRoomReserve.getReservationDateEnd();
-
-        for (RoomReserve existingReserve : roomReserveList) {
-            // 기존의 자신의 예약과의 비교는 제외
-            if (!existingReserve.getId().equals(filteredRoomReserve.getId())) {
-                // 기존 예약 시간
-                LocalDateTime existingStartTime = existingReserve.getReservationDate();
-                LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
-
-                // 예약이 겹치는 Case 3가지를 판별하는 로직.
-                boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
-
-                // 겹치는 예약? -> Exception
-                if (isOverlap) {
-                    throw new RoomReserveOverlapException();
-                }
-            }
-        }
-
-        return new RoomReserveUpdateResponseDto(filteredRoomReserve);
     }
 
     @Transactional
@@ -192,5 +153,68 @@ public class RoomReserveService {
 
         return roomReservePage.map(RoomReserveResponseDto::new);
 
+    }
+
+    // 예약 시간 중복 체크 (기존 예약과 비교하여)
+    private void checkReserveOverlap(Long roomId, LocalDateTime reservationDate, LocalDateTime reservationDateEnd) {
+        List<RoomReserve> roomReserveList = roomReserveRepository.findAllByRoomId(roomId);
+
+        for (RoomReserve existingReserve : roomReserveList) {
+            // 기존 예약 시간
+            LocalDateTime existingStartTime = existingReserve.getReservationDate();
+            LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
+
+            // 예약이 겹치는 Case 3가지를 판별하는 로직.
+            boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
+
+            // 겹치는 예약? -> Exception
+            if (isOverlap) {
+                throw new RoomReserveOverlapException();
+            }
+        }
+    }
+
+    private RoomReserve findRoomReserveById(Room room, Long reserveId) {
+        return room.getRoomReservations().stream()
+                .filter(reserve -> reserve.getId().equals(reserveId))
+                .findFirst()
+                .orElseThrow(NotFoundRoomReserveException::new);
+    }
+
+    private void validateUserReservation(User user, RoomReserve filteredRoomReserve) {
+        if (!filteredRoomReserve.getUser().getId().equals(user.getId())) {
+            throw new ReservationModificationNotAllowedException();
+        }
+    }
+
+    private void updateRoomReserveInfo(RoomReserve filteredRoomReserve, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
+        if (roomReserveUpdateRequestDto.getReservationDate() != null) {
+            filteredRoomReserve.updateReservationDate(roomReserveUpdateRequestDto.getReservationDate());
+        }
+        if (roomReserveUpdateRequestDto.getReservationDateEnd() != null) {
+            filteredRoomReserve.updateReservationDateEnd(roomReserveUpdateRequestDto.getReservationDateEnd());
+        }
+    }
+
+    private void checkReservationOverlap(List<RoomReserve> roomReserveList, RoomReserve filteredRoomReserve) {
+        LocalDateTime reservationDate = filteredRoomReserve.getReservationDate();
+        LocalDateTime reservationDateEnd = filteredRoomReserve.getReservationDateEnd();
+
+        for (RoomReserve existingReserve : roomReserveList) {
+            // 기존의 자신의 예약과의 비교는 제외
+            if (!existingReserve.getId().equals(filteredRoomReserve.getId())) {
+                // 기존 예약 시간
+                LocalDateTime existingStartTime = existingReserve.getReservationDate();
+                LocalDateTime existingEndTime = existingReserve.getReservationDateEnd();
+
+                // 예약이 겹치는 Case 3가지를 판별하는 로직.
+                boolean isOverlap = reservationDate.isBefore(existingEndTime) && reservationDateEnd.isAfter(existingStartTime);
+
+                // 겹치는 예약? -> Exception
+                if (isOverlap) {
+                    throw new RoomReserveOverlapException();
+                }
+            }
+        }
     }
 }

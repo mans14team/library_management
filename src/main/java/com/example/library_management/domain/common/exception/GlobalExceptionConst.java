@@ -39,6 +39,8 @@ public enum GlobalExceptionConst {
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, " 댓글을 찾을 수 없습니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, " 스터디룸이 존재하지 않습니다."),
     NOT_FOUND_ROOM_RESERVE(HttpStatus.NOT_FOUND, " 스터디룸 예약이 존재하지 않습니다."),
+    NOT_FOUND_RENTABLE_BOOKCOPY(HttpStatus.NOT_FOUND, "대여 가능한 서적이 존재하지 않습니다."),
+    NOT_FOUND_BOOK_RESERVATION(HttpStatus.NOT_FOUND, "존재하지 않는 책 대여 예약 정보입니다."),
 
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),

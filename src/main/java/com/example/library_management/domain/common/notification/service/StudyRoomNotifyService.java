@@ -8,15 +8,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class StudyRoomNotifyService {
-    private RoomReserveRepository roomReserveRepository;
-    private NotificationService notificationService;
+    private final RoomReserveRepository roomReserveRepository;
+    private final NotificationService notificationService;
 
     // 예약일에 따른 알림을 생성하는 메서드
     public void sendReservationReminders() {
@@ -40,8 +42,9 @@ public class StudyRoomNotifyService {
 
     // 1일전 당일 예약날짜인 스터디룸 리스트 뽑아오는 로직
     private List<RoomReserve> getReservationDueIn(int dayBefore) {
-        LocalDateTime targetDate = LocalDateTime.now().plusDays(dayBefore);
-        return roomReserveRepository.findReservation(targetDate);
+        LocalDateTime startDate = LocalDate.now().plusDays(dayBefore).atStartOfDay();
+        LocalDateTime endDate = LocalDate.now().plusDays(dayBefore).atTime(LocalTime.MAX);
+        return roomReserveRepository.findReservation(startDate,endDate);
     }
 
 

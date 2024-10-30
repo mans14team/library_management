@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -33,7 +34,7 @@ public class RentalNotifyService {
                         .toLocalDate().isEqual(LocalDate.now().plusDays(3)))
                 .toList();
         log.info("잘 들어오나 확인");
-        sendReminders(rentals3DaysBefore, "대여 만료 3일전입니다. 책 반납 준비 해주세요!");
+        sendReminders(rentals3DaysBefore, "대여 만료 3일전입니다.책 반납 준비 해주세요!");
 
         List<BookRental> rentals1DaysBefore = rentalsDueIn3Days.stream()
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
@@ -67,8 +68,8 @@ public class RentalNotifyService {
 
     // 반납 기한이 n일 후인 대여 정보를 조회하는 메서드
     private List<BookRental> getRentalsDueInRange(int days) {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
-        LocalDateTime endDate = startDate.plusDays(days); // 현재 날짜 + dayBefore
+        LocalDateTime startDate = LocalDate.now().minusDays(7).atStartOfDay();
+        LocalDateTime endDate = LocalDate.now().plusDays(days).atTime(LocalTime.MAX); // 현재 날짜 + dayBefore
         log.info("startDate:"+startDate+" endDate: "+endDate );
         return bookRentalRepository.findAllRentalDateBetween(startDate, endDate);
 

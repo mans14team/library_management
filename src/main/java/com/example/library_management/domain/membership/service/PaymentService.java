@@ -2,8 +2,10 @@ package com.example.library_management.domain.membership.service;
 
 import com.example.library_management.domain.common.exception.GlobalExceptionConst;
 import com.example.library_management.domain.membership.dto.request.PaymentConfirmRequest;
+import com.example.library_management.domain.membership.dto.request.PaymentSearchCondition;
 import com.example.library_management.domain.membership.dto.response.PaymentRequestResponse;
 import com.example.library_management.domain.membership.dto.response.PaymentResponse;
+import com.example.library_management.domain.membership.dto.response.PaymentSearchResult;
 import com.example.library_management.domain.membership.dto.response.TossPaymentResponse;
 import com.example.library_management.domain.membership.entity.Membership;
 import com.example.library_management.domain.membership.entity.MembershipPayment;
@@ -20,7 +22,12 @@ import com.example.library_management.domain.user.service.UserService;
 import com.example.library_management.global.config.TossPaymentProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -143,6 +150,12 @@ public class PaymentService {
         return "결제에 실패했습니다.";
     }
     
+    // 결제 내역 조회
+    @Transactional(readOnly = true)
+    public Page<PaymentSearchResult> getPaymentHistory(User user, PaymentSearchCondition condition, Pageable pageable) {
+        return paymentRepository.search(condition, user, pageable);
+    }
+    
     // 활성화된 멤버십 검증 메서드
     private void validateMembershipStatus(User user) {
         Optional<Membership> activeMembership = membershipRepository.findByUserAndStatus(user, MembershipStatus.ACTIVE);
@@ -188,5 +201,4 @@ public class PaymentService {
         MembershipPayment payment = MembershipPayment.createPayment(membership, response.getPaymentKey(), response.getBillingKey(), response.getOrderId());
         return paymentRepository.save(payment);
     }
-
 }

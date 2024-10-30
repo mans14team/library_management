@@ -27,13 +27,14 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class BookReservationService {
     private final BookReservationRepository bookReservationRepository;
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
 
 
+    // 낙관적 락 사용 -> bookCopy의 버젼을 확인하여 판별.
+    @Transactional
     public BookReservationResponseDto submitBookReservation(BookReservationRequestDto bookReservationRequestDto, UserDetailsImpl userDetails) {
         // + 유저 멤버쉽 확인
         // + 유저 검증 -> 대여 가능한 상태인지? 아래 유저 검증이랑 합치기
@@ -50,9 +51,10 @@ public class BookReservationService {
         }
 
         BookCopy bookCopy = bookCopyOpt.get();
-        bookCopy.setRentable(false);
 
         BookReservation bookReservation = new BookReservation(LocalDate.now(), bookCopy, user);
+
+        bookCopy.setRentable(false);
 
         bookCopyRepository.save(bookCopy);
 
@@ -62,6 +64,7 @@ public class BookReservationService {
     }
 
     // 기한 만료시 자동으로 호출될 로직
+    @Transactional
     public Long deleteBookReservation(Long bookReservationId, UserDetailsImpl userDetails) {
         if(!validateUserAdmin(userDetails)){
             throw new AuthorizedAdminException();

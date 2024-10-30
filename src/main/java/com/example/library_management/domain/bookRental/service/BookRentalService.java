@@ -26,7 +26,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class BookRentalService {
     private final BookRentalRepository bookRentalRepository;
     private final BookCopyRepository bookCopyRepository;
@@ -36,6 +35,7 @@ public class BookRentalService {
         return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
     }
 
+    @Transactional
     public BookRentalResponseDto submitBookRental(BookRentalRequestDto bookRentalRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)) {
             throw new AuthorizedAdminException();
@@ -64,6 +64,7 @@ public class BookRentalService {
         return new BookRentalResponseDto(savedBookRental);
     }
 
+    @Transactional
     public BookRentalResponseDto returnBookRental(BookRentalRequestDto bookRentalRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)) {
             throw new AuthorizedAdminException();
@@ -87,6 +88,7 @@ public class BookRentalService {
         return new BookRentalResponseDto(returnedBookRental);
     }
 
+    @Transactional
     public Long deleteBookRental(Long bookRentalId, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)) {
             throw new AuthorizedAdminException();

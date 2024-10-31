@@ -71,7 +71,15 @@ public class PaymentController {
     // 결제 상세 내역 조회 API
 
     // 환불 처리
+    @PostMapping("/refund/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(@PathVariable Long paymentId, @RequestParam(required = false) String cancelReason, @AuthenticationPrincipal UserDetailsImpl userDetails){
+        PaymentResponse response = paymentService.refundPayment(paymentId, cancelReason, userDetails.getUser());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
     
     // 자동 결제 기능
-
+    @PostMapping("/auto-payment/register")
+    public ResponseEntity<ApiResponse<String>> registerAutoPayment(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return ResponseEntity.ok(ApiResponse.success(paymentService.registerAutoPayment(userDetails.getUser())));
+    }
 }

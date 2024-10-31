@@ -82,4 +82,13 @@ public class MembershipPayment extends Timestamped {    // 결제 정보 저장�
         this.status = PaymentStatus.CANCELLED;
         this.failReason = reason;
     }
+
+    // 빌링키 업데이트 (자동결제에 사용)
+    public void updateBillingKey(String billingKey) {
+        // 빌링키 유효성 검사 (null이나 빈 문자열이 아닌지 확인)
+        if (billingKey == null || billingKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("빌링키는 null이거나 빈 값일 수 없습니다.");
+        }
+        this.billingKey = billingKey;
+    }
 }

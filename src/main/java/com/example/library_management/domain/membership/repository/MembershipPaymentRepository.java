@@ -1,5 +1,6 @@
 package com.example.library_management.domain.membership.repository;
 
+import com.example.library_management.domain.membership.entity.Membership;
 import com.example.library_management.domain.membership.entity.MembershipPayment;
 import com.example.library_management.domain.membership.enums.PaymentStatus;
 import com.example.library_management.domain.user.entity.User;
@@ -28,4 +29,8 @@ public interface MembershipPaymentRepository extends JpaRepository<MembershipPay
             @Param("endDateTime") LocalDateTime endDateTime,
             @Param("status") PaymentStatus status,
             Pageable pageable);
+
+    // 특정 멤버십의 가장 최근 결제 정보를 조회
+    @Query("SELECT mp FROM MembershipPayment mp WHERE mp.membership = :membership ORDER BY mp.createdAt DESC")
+    Optional<MembershipPayment> findTopByMembershipOrderByCreatedAtDesc(@Param("membership") Membership activeMembership);
 }

@@ -20,19 +20,19 @@ public enum GlobalExceptionConst {
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, " 관리자 권한이 존재하지 않습니다."),
 
     // 상태코드 403
-    UNAUTHORIZED_CREATE(HttpStatus.FORBIDDEN, " 게시글 권한이 없습니다."),
-    UNAUTHORIZED_CREATE_REVIEW(HttpStatus.FORBIDDEN," 리뷰를 수정/삭제할 권한이 없습니다."),
-    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, " 댓글 접근에 권한이 없습니다."),
-    UNAUTHORIZED_ROOMCONTROL(HttpStatus.FORBIDDEN, " 스터디룸 관리 권한이 없습니다."),
-    UNAUTHORIZED_RESERVATION_MODIFICATION(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 수정할 수 있습니다."),
-    UNAUTHORIZED_RESERVATION_DELETE(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 삭제할 수 있습니다."),
+    FORBIDDEN_CREATE(HttpStatus.FORBIDDEN, " 게시글 권한이 없습니다."),
+    FORBIDDEN_CREATE_REVIEW(HttpStatus.FORBIDDEN, " 리뷰를 수정/삭제할 권한이 없습니다."),
+    FORBIDDEN_COMMENT_ACCESS(HttpStatus.FORBIDDEN, " 댓글 접근에 권한이 없습니다."),
+    FORBIDDEN_ROOMCONTROL(HttpStatus.FORBIDDEN, " 스터디룸 관리 권한이 없습니다."),
+    FORBIDDEN_RESERVATION_MODIFICATION(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 수정할 수 있습니다."),
+    FORBIDDEN_RESERVATION_DELETE(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 삭제할 수 있습니다."),
 
     // 상태코드 404
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, " 회원이 존재하지 않습니다."),
     NOT_FOUND_EMAIL(HttpStatus.NOT_FOUND, " 이메일을 확인해주세요."),
     DELETED_USER(HttpStatus.NOT_FOUND, " 탈퇴된 회원입니다."),
     NOT_FOUND_BOARD(HttpStatus.NOT_FOUND, " 게시글이 존재하지 않습니다."),
-    NOT_FOUND_REVIEW(HttpStatus.NOT_FOUND," 리뷰가 존재하지 않습니다."),
+    NOT_FOUND_REVIEW(HttpStatus.NOT_FOUND, " 리뷰가 존재하지 않습니다."),
     NOT_FOUND_CATEGORY(HttpStatus.NOT_FOUND, " 존재하지 않는 카테고리입니다."),
     NOT_FOUND_BOOK(HttpStatus.NOT_FOUND, " 존재하지 않는 도서 ID 입니다."),
     NOT_FOUND_BOOK_COPY(HttpStatus.NOT_FOUND, " 존재하지 않는 복본 ID 입니다."),

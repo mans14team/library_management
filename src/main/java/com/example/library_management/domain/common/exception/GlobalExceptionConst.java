@@ -20,12 +20,12 @@ public enum GlobalExceptionConst {
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, " 관리자 권한이 존재하지 않습니다."),
 
     // 상태코드 403
-    UNAUTHORIZED_CREATE(HttpStatus.UNAUTHORIZED, " 게시글 권한이 없습니다."),
-    UNAUTHORIZED_CREATE_REVIEW(HttpStatus.UNAUTHORIZED," 리뷰를 수정/삭제할 권한이 없습니다."),
-    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.UNAUTHORIZED, " 댓글 접근에 권한이 없습니다."),
-    UNAUTHORIZED_ROOMCONTROL(HttpStatus.UNAUTHORIZED, " 스터디룸 관리 권한이 없습니다."),
-    UNAUTHORIZED_RESERVATION_MODIFICATION(HttpStatus.UNAUTHORIZED, "본인의 스터디룸 예약만 수정할 수 있습니다."),
-    UNAUTHORIZED_RESERVATION_DELETE(HttpStatus.UNAUTHORIZED, "본인의 스터디룸 예약만 삭제할 수 있습니다."),
+    UNAUTHORIZED_CREATE(HttpStatus.FORBIDDEN, " 게시글 권한이 없습니다."),
+    UNAUTHORIZED_CREATE_REVIEW(HttpStatus.FORBIDDEN," 리뷰를 수정/삭제할 권한이 없습니다."),
+    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, " 댓글 접근에 권한이 없습니다."),
+    UNAUTHORIZED_ROOMCONTROL(HttpStatus.FORBIDDEN, " 스터디룸 관리 권한이 없습니다."),
+    UNAUTHORIZED_RESERVATION_MODIFICATION(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 수정할 수 있습니다."),
+    UNAUTHORIZED_RESERVATION_DELETE(HttpStatus.FORBIDDEN, "본인의 스터디룸 예약만 삭제할 수 있습니다."),
 
     // 상태코드 404
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, " 회원이 존재하지 않습니다."),

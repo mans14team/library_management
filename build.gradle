@@ -61,6 +61,8 @@ dependencies {
     //redisson
     implementation 'org.redisson:redisson-spring-boot-starter:3.17.6'
 
+    //openlibrary
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
 tasks.named('test') {

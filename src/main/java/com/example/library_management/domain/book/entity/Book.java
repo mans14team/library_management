@@ -27,6 +27,23 @@ public class Book {
     @Column(nullable = false)
     private String bookTitle;
 
+
+
+//    @ElementCollection
+//    private List<String> bookAuthor;
+//
+//    @ElementCollection
+//    private List<String> bookPublisher;
+//
+//    @ElementCollection
+//    private List<Long> bookPublished;
+//
+//    @ElementCollection
+//    private List<Long> bookSubject;
+
+
+
+    //========== 지울거=========
     private String bookDescription;
 
     private String bookAuthor;
@@ -40,6 +57,11 @@ public class Book {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private BookCategory category;
+    //=========================
+
+
+
+
 
     @OneToMany(mappedBy = "book")
     private List<BookCopy> copyList = new ArrayList<>();

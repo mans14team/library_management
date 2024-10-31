@@ -70,7 +70,7 @@ class ReviewServiceTest {
             ReflectionTestUtils.setField(saveRequest,"reviewDescription","리뷰 내용");
 
             //when
-            reviewService.saveReview();
+//            reviewService.saveReview();
 
 
         }

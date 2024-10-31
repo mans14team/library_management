@@ -1,6 +1,7 @@
 package com.example.library_management.domain.review.service;
 
 import com.example.library_management.domain.book.entity.Book;
+import com.example.library_management.domain.book.exception.FindBookException;
 import com.example.library_management.domain.book.repository.BookRepository;
 import com.example.library_management.domain.review.dto.request.ReviewSaveRequest;
 import com.example.library_management.domain.review.dto.request.ReviewUpdateRequest;
@@ -29,18 +30,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public ReviewSaveResponse saveReview(Long bookId, ReviewSaveRequest request, UserDetailsImpl userDetails) {
 
         // 책이 등록되어있지 않다면 예외처리
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("해당하는 책을 찾을 수 없습니다."));
+                .orElseThrow(FindBookException::new);
 
-        //회원이 아니라면 예외처리
-        User user = userRepository.findById(userDetails.getUser().getId())
-                .orElseThrow(NotFoundUserException::new);
 
         // ReviewStar가 1~5점이 아니면 예외처리
         if (!(request.getReviewStar() >= 1 && request.getReviewStar() <= 5)) {
@@ -51,7 +48,7 @@ public class ReviewService {
                 request.getReviewTitle(),
                 request.getReviewDescription(),
                 book,
-                user
+                userDetails.getUser()
         );
         Review saveReview = reviewRepository.save(review);
 

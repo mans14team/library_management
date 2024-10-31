@@ -119,8 +119,8 @@ class RoomServiceTest {
             UnauthorizedRoomAccessException exception = assertThrows(UnauthorizedRoomAccessException.class,
                     () -> roomService.createRoom(user, roomCreateRequestDto));
 
-            assertEquals(HttpStatus.UNAUTHORIZED, exception.getHttpStatus());
-            assertTrue(exception.getMessage().contains(GlobalExceptionConst.UNAUTHORIZED_ROOMCONTROL.getMessage()));
+            assertEquals(HttpStatus.FORBIDDEN, exception.getHttpStatus());
+            assertTrue(exception.getMessage().contains(GlobalExceptionConst.FORBIDDEN_ROOMCONTROL.getMessage()));
             verify(roomRepository,never()).save(any(Room.class));
 
         }
@@ -176,8 +176,8 @@ class RoomServiceTest {
             UnauthorizedRoomAccessException exception = assertThrows(UnauthorizedRoomAccessException.class,
                     () -> roomService.updateRoom(user, 2L, roomUpdateRequestDto));
 
-            assertEquals(HttpStatus.UNAUTHORIZED, exception.getHttpStatus());
-            assertTrue(exception.getMessage().contains(GlobalExceptionConst.UNAUTHORIZED_ROOMCONTROL.getMessage()));
+            assertEquals(HttpStatus.FORBIDDEN, exception.getHttpStatus());
+            assertTrue(exception.getMessage().contains(GlobalExceptionConst.FORBIDDEN_ROOMCONTROL.getMessage()));
         }
     }
 

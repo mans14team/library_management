@@ -43,11 +43,15 @@ public enum GlobalExceptionConst {
     NOT_FOUND_RENTABLE_BOOKCOPY(HttpStatus.NOT_FOUND, "대여 가능한 서적이 존재하지 않습니다."),
     NOT_FOUND_BOOK_RESERVATION(HttpStatus.NOT_FOUND, "존재하지 않는 책 대여 예약 정보입니다."),
 
+    // 상태코드 408
+    REQUEST_LOCK_TIME_OUT(HttpStatus.REQUEST_TIMEOUT, "예약 처리중 잠금 대기 시간이 초과되었습니다."),
+
     // 상태코드 409
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, " 중복된 이메일입니다."),
     RENTAL_NOT_POSSIBLE(HttpStatus.CONFLICT, " 현재 대여 불가능한 서적입니다."),
     ALREADY_RETURN(HttpStatus.CONFLICT, " 이미 반납된 서적입니다."),
     ROOM_RESERVE_OVERLAP(HttpStatus.CONFLICT, "예약 시간이 겹쳐 예약이 불가능합니다."),
+    ROOM_RESERVE_EXCEPTION(HttpStatus.CONFLICT, "예약 시도 중 오류가 발생했습니다."),
     OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "다른 사용자에 의해 예약 충돌이 발생하였습니다, 새로고침 후 재시도해주세요."),
 
     // 상태코드 422

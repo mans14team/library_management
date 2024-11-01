@@ -165,8 +165,8 @@ class BoardServiceTest {
                     boardService.createBoard(createRequestDto, user)
             );
 
-            assertEquals(HttpStatus.UNAUTHORIZED, exception.getHttpStatus());
-            assertTrue(exception.getMessage().contains(GlobalExceptionConst.UNAUTHORIZED_CREATE.getMessage()));
+            assertEquals(HttpStatus.FORBIDDEN, exception.getHttpStatus());
+            assertTrue(exception.getMessage().contains(GlobalExceptionConst.FORBIDDEN_CREATE.getMessage()));
             verify(boardRepository, never()).save(any(Board.class));
         }
 
@@ -185,8 +185,8 @@ class BoardServiceTest {
                     boardService.createBoard(createRequestDto, admin)
             );
 
-            assertEquals(HttpStatus.UNAUTHORIZED, exception.getHttpStatus());
-            assertTrue(exception.getMessage().contains(GlobalExceptionConst.UNAUTHORIZED_CREATE.getMessage()));
+            assertEquals(HttpStatus.FORBIDDEN, exception.getHttpStatus());
+            assertTrue(exception.getMessage().contains(GlobalExceptionConst.FORBIDDEN_CREATE.getMessage()));
             verify(boardRepository, never()).save(any(Board.class));
         }
 

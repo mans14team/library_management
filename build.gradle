@@ -63,6 +63,8 @@ dependencies {
 
     //openlibrary
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 }
 
 tasks.named('test') {

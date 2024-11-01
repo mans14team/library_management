@@ -9,11 +9,11 @@ import lombok.Setter;
 public class BookResponseDtos {
     public BookResponseDtos(Book book) {
         this.bookId = book.getId();
+        this.isbn = book.getIsbn();
         this.bookTitle = book.getBookTitle();
-        this.category = book.getCategory().getCategoryName();
     }
 
     private Long bookId;
+    private String isbn;
     private String bookTitle;
-    private String category;
 }

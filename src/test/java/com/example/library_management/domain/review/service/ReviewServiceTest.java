@@ -282,6 +282,7 @@ class ReviewServiceTest {
             );
             given(reviewRepository.findAllUserWriten(pageable, userDetailUser.getUser().getId())).willReturn(reviewPages);
             //when
+//            reviewService.saveReview();
             Page<ReviewsGetResponse> result = reviewService.findAllUserWriten(page, size, userDetailUser);
             //then
             assertNotNull(result);

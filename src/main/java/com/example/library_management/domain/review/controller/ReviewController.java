@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("library/books")
+@RequestMapping("/library/books")
 public class ReviewController {
     private final ReviewService reviewService;
 

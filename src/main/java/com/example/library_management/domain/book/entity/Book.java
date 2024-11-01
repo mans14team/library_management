@@ -66,7 +66,7 @@ public class Book {
     @OneToMany(mappedBy = "book")
     private List<BookCopy> copyList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book",cascade = CascadeType.REMOVE)
     private List<Review> reviewList = new ArrayList<>();
 
     public Book(String bookTitle, String bookDescription, String bookAuthor, String bookPublisher, LocalDate bookPublished, BookCategory category) {

@@ -61,8 +61,14 @@ dependencies {
     //redisson
     implementation 'org.redisson:redisson-spring-boot-starter:3.17.6'
 
+
     //openlibrary
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    implementation 'org.springframework.retry:spring-retry'
+
 }
 
 tasks.named('test') {

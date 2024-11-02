@@ -9,8 +9,6 @@ import com.example.library_management.domain.book.exception.AuthorizedAdminExcep
 import com.example.library_management.domain.book.exception.FindBookException;
 import com.example.library_management.domain.book.exception.FindCatogoryException;
 import com.example.library_management.domain.book.repository.BookRepository;
-import com.example.library_management.domain.bookCategory.entity.BookCategory;
-import com.example.library_management.domain.bookCategory.repository.BookCategoryRepository;
 import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.global.security.UserDetailsImpl;
 import jakarta.transaction.Transactional;
@@ -26,7 +24,6 @@ import java.util.List;
 @Transactional
 public class BookService {
     private final BookRepository bookRepository;
-    private final BookCategoryRepository categoryRepository;
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
 
@@ -35,21 +32,13 @@ public class BookService {
             throw new AuthorizedAdminException();
         }
 
-        BookCategory category = null;
-
-        if(bookRequestDto.getCategoryId() != null) {
-            category = categoryRepository.findById(bookRequestDto.getCategoryId()).orElseThrow(
-                    FindCatogoryException::new
-            );
-        }
-
         Book book = new Book(
+                bookRequestDto.getIsbn(),
                 bookRequestDto.getBookTitle(),
-                bookRequestDto.getBookDescription(),
-                bookRequestDto.getBookAuthor(),
-                bookRequestDto.getBookPublisher(),
                 bookRequestDto.getBookPublished(),
-                category
+                bookRequestDto.getAuthors(),
+                bookRequestDto.getPublishers(),
+                bookRequestDto.getSubjects()
         );
 
         Book savedBook = bookRepository.save(book);
@@ -66,21 +55,9 @@ public class BookService {
                 FindBookException::new
         );
 
-        BookCategory category = book.getCategory();
-
-        if(bookRequestDto.getCategoryId() != null) {
-            category = categoryRepository.findById(bookRequestDto.getCategoryId()).orElseThrow(
-                    FindCatogoryException::new
-            );
-        }
-
         book.update(
                 bookRequestDto.getBookTitle(),
-                bookRequestDto.getBookDescription(),
-                bookRequestDto.getBookAuthor(),
-                bookRequestDto.getBookPublisher(),
-                bookRequestDto.getBookPublished(),
-                category
+                bookRequestDto.getBookPublished()
         );
 
         Book savedBook = bookRepository.save(book);
@@ -119,11 +96,11 @@ public class BookService {
         return new BookResponseDto(book);
     }
 
-    public List<BookResponseDtos> getBooksByCategory(Long categoryId) {
-        BookCategory bookCategory = categoryRepository.findById(categoryId).orElseThrow(
-                () -> new FindCatogoryException()
-        );
-        List<Book> booksByCategory = bookRepository.findAllByCategory(bookCategory);
-        return booksByCategory.stream().map(BookResponseDtos::new).toList();
-    }
+//    public List<BookResponseDtos> getBooksByCategory(Long categoryId) {
+//        BookCategory bookCategory = categoryRepository.findById(categoryId).orElseThrow(
+//                () -> new FindCatogoryException()
+//        );
+//        List<Book> booksByCategory = bookRepository.findAllByCategory(bookCategory);
+//        return booksByCategory.stream().map(BookResponseDtos::new).toList();
+//    }
 }

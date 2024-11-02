@@ -14,8 +14,8 @@ public class OpenLibraryController {
     }
 
     @GetMapping("api/fetch-books")
-    public String fetchBooks(@RequestParam String subject, @RequestParam int count) {
-        openLibraryService.fetchAndSaveSelectedFields(subject, count);
+    public String fetchBooks(@RequestParam int count) {
+        openLibraryService.fetchAndSaveSelectedFields(count);
         return "Book data fetching initiated. Check books.json file for results.";
     }
 }

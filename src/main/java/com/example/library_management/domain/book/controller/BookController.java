@@ -46,12 +46,8 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<BookResponseDtos>> getBooks(@RequestParam(value = "category", required = false) Long categoryId) {
         List<BookResponseDtos> bookResponseDtosList;
-        if(categoryId != null){
-            bookResponseDtosList = bookService.getBooksByCategory(categoryId);
-        }
-        else {
-            bookResponseDtosList = bookService.getBooks();
-        }
+
+        bookResponseDtosList = bookService.getBooks();
 
         return ResponseEntity.ok(bookResponseDtosList);
     }

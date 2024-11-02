@@ -1,17 +1,11 @@
-package com.example.library_management.domain.book.dto;
+package com.example.library_management.domain.data.injectionBookData.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
-public class BookRequestDto {
+public class InjectionBookDataDto {
     private String isbn;
     private String bookTitle;
     private Long bookPublished;

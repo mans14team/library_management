@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/nginx:${IMAGE_TAG}
     ports:
       - "80:80"
     depends_on:
@@ -20,6 +18,8 @@ services:
     container_name: spring-app
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     restart: always
     networks:
       - app-network

@@ -128,27 +128,32 @@ jobs:
             sleep 30  # Spring Boot 시작 대기 시간 추가
             
             echo "7. 헬스체크..."
-            for i in {1..15}; do
-              # Spring Boot 헬스체크
-              SPRING_HEALTH=$(curl -s http://localhost:8080/actuator/health)
-              if echo "$SPRING_HEALTH" | grep -q "status:UP"; then
+            for i in {1..30}; do
+              HEALTH_RESPONSE=$(curl -s http://localhost:8080/actuator/health || echo "Failed to connect")
+              echo "Health check response: $HEALTH_RESPONSE"
+            
+              if echo "$HEALTH_RESPONSE" | grep -q "UP"; then
                 echo "Spring Boot 애플리케이션이 정상적으로 시작되었습니다."
                 break
               fi
-              if [ $i -eq 15 ]; then
-                echo "헬스체크 실패! 롤백을 시작합니다."
-                echo "Spring Boot 상태: $SPRING_HEALTH"
-                echo "Nginx 상태: $NGINX_HEALTH"
-                docker-compose logs --tail=50  # 실패 원인 파악을 위한 로그 확인
+            
+              if [ $i -eq 30 ]; then
+                echo "헬스체크 실패! 문제 진단:"
+                echo "Spring Boot 로그:"
+                docker-compose logs app
+                echo "Nginx 로그:"
+                docker-compose logs nginx
+                echo "Redis 연결 테스트:"
+                redis-cli -h ${REDIS_HOST} -a ${REDIS_PASSWORD} ping
             
                 if [ -f .env.backup ]; then
                   cp .env.backup .env
                   docker-compose up -d
                   echo "롤백 완료"
                 fi
-                exit 1
+              exit 1
               fi
-              echo "헬스체크 시도 $i/15"
+              echo "헬스체크 시도 $i/30"
               sleep 2
             done
             

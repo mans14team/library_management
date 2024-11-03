@@ -86,6 +86,7 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_URL=${{ secrets.REDIS_URL }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
             TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}

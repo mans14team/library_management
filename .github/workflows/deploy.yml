@@ -123,12 +123,21 @@ jobs:
               exit 1
             fi
             
-            echo "6. 헬스체크..."
-              for i in {1..15}; do
+            echo "6. Spring Boot 애플리케이션 시작 대기..."
+            sleep 30  # Spring Boot 시작 대기 시간 추가
+            
+            echo "7. 헬스체크..."
+            for i in {1..15}; do
+              if curl -s http://localhost:8080/health; then
+                echo "Spring Boot 애플리케이션이 정상적으로 시작되었습니다."
+            
+                # Nginx 헬스체크
                 if curl -s http://localhost/health; then
-                echo "애플리케이션이 정상적으로 시작되었습니다."
-                break
+                  echo "Nginx도 정상적으로 시작되었습니다."
+                  break
+                fi
               fi
+            
               if [ $i -eq 15 ]; then
                 echo "헬스체크 실패! 롤백을 시작합니다."
                 if [ -f .env.backup ]; then
@@ -142,10 +151,13 @@ jobs:
               sleep 2
             done
             
-            echo "7. 컨테이너 상태 확인..."
+            echo "8. 컨테이너 상태 확인..."
             docker ps
             
-            echo "8. 정리 작업..."
+            echo "9. 컨테이너 로그 확인..."
+            docker-compose logs --tail=50
+            
+            echo "10. 정리 작업..."
             rm -f .env.backup
             docker image prune -f
             

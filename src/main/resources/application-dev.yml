@@ -1,0 +1,65 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_HOST}/library_management
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      url: ${REDIS_URL}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        default_batch_fetch_size: 100
+
+jwt:
+  secret.key: ${JWT_SECRET_KEY}
+
+owner:
+  token: ${OWNER_TOKEN}
+
+payment:
+  retry:
+    max-attempts: 3
+    delay: 1000  # 1초
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  client-key: ${TOSS_CLIENT_KEY}
+  success-url: ${TOSS_SUCCESS_URL}
+  fail-url: ${TOSS_FAIL_URL}
+  api:
+    base-url: ${TOSS_BASE_URL}
+
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: ${USER_NAME}
+  password: ${USER_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true

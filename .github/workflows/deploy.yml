@@ -58,6 +58,7 @@ jobs:
           host: ${{ secrets.EC2_HOST_1 }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_USERNAME, IMAGE_TAG
           script: |
             # 프로젝트 디렉토리로 이동
             cd ~/library_management

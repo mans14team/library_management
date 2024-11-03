@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,6 +14,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomReserveRepository extends JpaRepository<RoomReserve, Long> {
+
+    @Modifying
+    @Query("DELETE FROM RoomReserve r WHERE r.reservationDateEnd < :endTime")
+    void deleteByEndTimeBefore(@Param("endTime") LocalDateTime endTime);
 
     @Query("SELECT r FROM RoomReserve r WHERE r.room.id = :roomId")
     List<RoomReserve> findAllByRoomId(@Param("roomId") Long roomId);

@@ -6,7 +6,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy  # app이 건강한 상태일 때만 시작
     restart: always
     networks:
       - app-network
@@ -25,14 +26,17 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     restart: always
     networks:
       - app-network
     healthcheck: # 헬스체크 추가
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s    # 애플리케이션 시작 대기 시간
 
 networks:
   app-network:

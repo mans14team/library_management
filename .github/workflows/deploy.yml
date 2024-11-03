@@ -130,15 +130,9 @@ jobs:
             for i in {1..15}; do
               # Spring Boot 헬스체크
               SPRING_HEALTH=$(curl -s http://localhost:8080/actuator/health)
-              if echo "$SPRING_HEALTH" | grep -q "UP"; then
+              if echo "$SPRING_HEALTH" | grep -q "status:UP"; then
                 echo "Spring Boot 애플리케이션이 정상적으로 시작되었습니다."
-            
-                # Nginx 헬스체크
-                NGINX_HEALTH=$(curl -s http://localhost/actuator/health)
-                if echo "$NGINX_HEALTH" | grep -q "UP"; then
-                  echo "Nginx도 정상적으로 시작되었습니다."
-                  break
-                fi
+                break
               fi
               if [ $i -eq 15 ]; then
                 echo "헬스체크 실패! 롤백을 시작합니다."

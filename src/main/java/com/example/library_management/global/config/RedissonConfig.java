@@ -33,6 +33,9 @@ public class RedissonConfig {
                 .setConnectionPoolSize(2)
                 .setRetryAttempts(3)
                 .setRetryInterval(1500)
+                .setDnsMonitoringInterval(5000)
+                .setSubscriptionConnectionMinimumIdleSize(1)
+                .setSubscriptionConnectionPoolSize(2)
                 .setTimeout(3000);
 
         return Redisson.create(config);

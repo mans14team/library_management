@@ -48,7 +48,7 @@ services:
       - app-network
     healthcheck: # 헬스체크 추가
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 20s
+      interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s    # 애플리케이션 시작 대기 시간

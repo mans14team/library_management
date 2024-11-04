@@ -37,7 +37,7 @@ spring:
         show_sql: false
         format_sql: false
         use_sql_comments: false
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
         default_batch_fetch_size: 100
     open-in-view: false
 

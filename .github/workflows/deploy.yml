@@ -119,7 +119,7 @@ jobs:
             fi
             
             echo "6. Spring Boot 애플리케이션 시작 대기..."
-            sleep 60  # Spring Boot 시작 대기 시간 추가
+            sleep 180  # Spring Boot 시작 대기 시간 추가
             
             echo "7. 헬스체크..."
             for i in {1..30}; do

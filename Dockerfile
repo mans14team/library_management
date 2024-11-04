@@ -14,4 +14,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
+
+# JVM 옵션 설정
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

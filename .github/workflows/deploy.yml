@@ -110,10 +110,7 @@ jobs:
             echo "5. 새 버전 배포 중..."
             docker-compose up -d
             
-            echo "6. Spring Boot 애플리케이션 시작 대기..."
-            sleep 60  # Spring Boot 시작 대기 시간 추가
-            
-            echo "7. 헬스체크..."
+            echo "6. 헬스체크..."
             for i in {1..30}; do
               HEALTH_RESPONSE=$(curl -s http://localhost:8080/actuator/health || echo "Failed to connect")
               echo "Health check response: $HEALTH_RESPONSE"
@@ -129,8 +126,6 @@ jobs:
                 docker-compose logs app
                 echo "Nginx 로그:"
                 docker-compose logs nginx
-                echo "Redis 연결 테스트:"
-                redis-cli -h ${REDIS_HOST} -a ${REDIS_PASSWORD} ping
             
                 if [ -f backups/.env.backup ]; then
                   cp backups/.env.backup .env
@@ -144,13 +139,13 @@ jobs:
               sleep 2
             done
             
-            echo "8. 컨테이너 상태 확인..."
+            echo "7. 컨테이너 상태 확인..."
             docker ps
             
-            echo "9. 컨테이너 로그 확인..."
+            echo "8. 컨테이너 로그 확인..."
             docker-compose logs --tail=50
             
-            echo "10. 정리 작업..."
+            echo "9. 정리 작업..."
             rm -f .env.backup
             docker image prune -f
             

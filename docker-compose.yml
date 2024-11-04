@@ -28,6 +28,21 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=${DB_HOST}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - OWNER_TOKEN=${OWNER_TOKEN}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
+      - TOSS_SUCCESS_URL=${TOSS_SUCCESS_URL}
+      - TOSS_FAIL_URL=${TOSS_FAIL_URL}
+      - TOSS_BASE_URL=${TOSS_BASE_URL}
+      - USER_NAME=${USER_NAME}
+      - USER_PASSWORD=${USER_PASSWORD}
     restart: always
     networks:
       - app-network
@@ -36,7 +51,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 5
-      start_period: 30s    # 애플리케이션 시작 대기 시간
+      start_period: 60s    # 애플리케이션 시작 대기 시간
 
 networks:
   app-network:

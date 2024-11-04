@@ -108,18 +108,10 @@ jobs:
             fi
             
             echo "5. 새 버전 배포 중..."
-            if ! docker-compose up -d; then
-              echo "배포 실패! 이전 버전으로 롤백합니다."
-              if [ -f .env.backup ]; then
-                cp .env.backup .env
-                docker-compose up -d
-                echo "롤백 완료"
-              fi
-              exit 1
-            fi
+            docker-compose up -d
             
             echo "6. Spring Boot 애플리케이션 시작 대기..."
-            sleep 180  # Spring Boot 시작 대기 시간 추가
+            sleep 60  # Spring Boot 시작 대기 시간 추가
             
             echo "7. 헬스체크..."
             for i in {1..30}; do

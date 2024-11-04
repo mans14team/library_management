@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    image: ${DOCKER_USERNAME}/nginx:${IMAGE_TAG}
+    image: nginx:alpine
     ports:
       - "80:80"
     depends_on:

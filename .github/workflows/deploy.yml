@@ -45,13 +45,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
 
-      - name: Build and push Nginx image    # Nginx 이미지 빌드 및 푸시
-        uses: docker/build-push-action@v5
-        with:
-          context: ./nginx
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/nginx:${{ github.sha }}
-
       - name: Deploy to AWS EC2 1
         uses: appleboy/ssh-action@master
         with:
@@ -103,12 +96,6 @@ jobs:
             echo "4. 새 Docker 이미지 pull..."
             if ! docker pull ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}; then
               echo "Spring 이미지 pull 실패"
-              [ -f .env.backup ] && cp .env.backup .env
-              exit 1
-            fi
-            
-            if ! docker pull ${{ secrets.DOCKER_USERNAME }}/nginx:${{ github.sha }}; then
-              echo "Nginx 이미지 pull 실패"
               [ -f .env.backup ] && cp .env.backup .env
               exit 1
             fi

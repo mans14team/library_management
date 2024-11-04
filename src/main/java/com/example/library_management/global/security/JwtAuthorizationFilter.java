@@ -32,7 +32,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
         String path = req.getRequestURI();
         // OAuth2 관련 경로 및 로그인, 회원가입 요청은 이 필터를 건너뜁니다.
-        if (path.startsWith("/oauth2") || path.equals("/auth/signup") || path.equals("/auth/signin") || path.equals("/actuator/health") || path.equals("/") || path.equals("/error") ){
+        if (path.startsWith("/oauth2") || path.equals("/auth/signup") || path.equals("/auth/signin") || path.equals("/actuator/health") || path.equals("/") || path.equals("/error") || path.equals("/favicon.ico")){
             filterChain.doFilter(req, res);
             return;
         }

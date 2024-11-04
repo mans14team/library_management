@@ -9,7 +9,9 @@ RUN chmod +x ./gradlew
 RUN ./gradlew bootJar
 
 FROM openjdk:17-jdk-slim
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && \
+    apt-get install -y curl redis-tools && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

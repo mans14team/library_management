@@ -3,6 +3,7 @@ version: '3.8'
 services:
   nginx:
     image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
     depends_on:
@@ -45,9 +46,7 @@ services:
       - USER_PASSWORD=${USER_PASSWORD}
     restart: always
     networks:
-      app-network:
-        aliases:
-          - app
+      - app-network
     healthcheck: # 헬스체크 추가
       test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
@@ -57,4 +56,5 @@ services:
 
 networks:
   app-network:
+    name: app-network
     driver: bridge

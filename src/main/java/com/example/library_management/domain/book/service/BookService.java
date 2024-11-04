@@ -4,6 +4,7 @@ import com.example.library_management.domain.book.controller.BookController;
 import com.example.library_management.domain.book.dto.BookResponseDto;
 import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
+import com.example.library_management.domain.book.dto.BookUpdateRequestDto;
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.exception.AuthorizedAdminException;
 import com.example.library_management.domain.book.exception.FindBookException;
@@ -26,6 +27,9 @@ public class BookService {
     private final BookRepository bookRepository;
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
+    public Boolean validateUser(UserDetailsImpl userDetails) {
+        return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
+    }
 
     public BookResponseDto addBook(BookRequestDto bookRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)){
@@ -46,7 +50,7 @@ public class BookService {
         return new BookResponseDto(savedBook);
     }
 
-    public BookResponseDto updateBook(Long bookId, BookRequestDto bookRequestDto, UserDetailsImpl userDetails) {
+    public BookResponseDto updateBook(Long bookId, BookUpdateRequestDto bookRequestDto, UserDetailsImpl userDetails) {
         if(!validateUser(userDetails)){
             throw new AuthorizedAdminException();
         }
@@ -57,7 +61,13 @@ public class BookService {
 
         book.update(
                 bookRequestDto.getBookTitle(),
-                bookRequestDto.getBookPublished()
+                bookRequestDto.getBookPublished(),
+                bookRequestDto.getAddAuthors(),
+                bookRequestDto.getAddPublishers(),
+                bookRequestDto.getAddSubjects(),
+                bookRequestDto.getRemoveAuthors(),
+                bookRequestDto.getRemovePublishers(),
+                bookRequestDto.getRemoveSubjects()
         );
 
         Book savedBook = bookRepository.save(book);
@@ -79,10 +89,6 @@ public class BookService {
         return bookId;
     }
 
-    public Boolean validateUser(UserDetailsImpl userDetails) {
-        return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
-    }
-
     public List<BookResponseDtos> getBooks() {
         List<Book> books = bookRepository.findAll();
 
@@ -96,11 +102,6 @@ public class BookService {
         return new BookResponseDto(book);
     }
 
-//    public List<BookResponseDtos> getBooksByCategory(Long categoryId) {
-//        BookCategory bookCategory = categoryRepository.findById(categoryId).orElseThrow(
-//                () -> new FindCatogoryException()
-//        );
-//        List<Book> booksByCategory = bookRepository.findAllByCategory(bookCategory);
-//        return booksByCategory.stream().map(BookResponseDtos::new).toList();
-//    }
+    // 책 검색
+
 }

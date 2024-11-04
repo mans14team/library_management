@@ -55,18 +55,37 @@ public class Book {
         if(!subjects.isEmpty()) this.subjects.addAll(subjects);
     }
 
-    public void update(String bookTitle, Long bookPublished) {
+    public void update(
+            String bookTitle,
+            Long bookPublished,
+            List<String> addAuthors,
+            List<String> addPublishers,
+            List<String> addSubjects,
+            List<String> removeAuthors,
+            List<String> removePublishers,
+            List<String> removeSubjects
+    ) {
         if(bookTitle != null) this.bookTitle = bookTitle;
         if(bookPublished != null) this.bookPublished = bookPublished;
+        if(addAuthors != null) this.authors.addAll(addAuthors);
+        if(addPublishers != null) this.publishers.addAll(addPublishers);
+        if(addSubjects != null) this.subjects.addAll(addSubjects);
+        if(removeAuthors != null) this.authors.removeAll(removeAuthors);
+        if(removePublishers != null) this.publishers.removeAll(removePublishers);
+        if(removeSubjects != null) this.subjects.removeAll(removeSubjects);
     }
 
-    public void addAuthors(List<String> authors){
-        this.authors.addAll(authors);
-    }
-    public void addPublishers(List<String> publishers){
-        this.publishers.addAll(publishers);
-    }
-    public void addSubjects(List<String> subjects){
-        this.subjects.addAll(subjects);
-    }
+//    public void addAuthors(List<String> authors){
+//        this.authors.addAll(authors);
+//    }
+//    public void addPublishers(List<String> publishers){
+//        this.publishers.addAll(publishers);
+//    }
+//    public void addSubjects(List<String> subjects){
+//        this.subjects.addAll(subjects);
+//    }
+//
+//    public void removeAuthors(List<String> authors){ this.authors.removeAll(authors); }
+//    public void removePublishers(List<String> publishers){ this.publishers.removeAll(publishers); }
+//    public void removeSubjects(List<String> subjects){ this.subjects.removeAll(subjects); }
 }

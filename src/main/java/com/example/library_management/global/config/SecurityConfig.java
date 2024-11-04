@@ -67,7 +67,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        .requestMatchers("auth/**", "/oauth2/**","/error","/actuator/**").permitAll()// 로그인, 회원가입 필터 통과
+                        .requestMatchers("/", "auth/**", "/oauth2/**","/error","/actuator/**", "/error").permitAll()// 로그인, 회원가입 필터 통과
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 

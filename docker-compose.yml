@@ -18,7 +18,7 @@ services:
       test: [ "CMD-SHELL", "apk add --no-cache curl && curl -f http://localhost/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
 
   app:
     image: ${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}
@@ -52,7 +52,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s    # 애플리케이션 시작 대기 시간
+      start_period: 40s    # 애플리케이션 시작 대기 시간
 
 networks:
   app-network:

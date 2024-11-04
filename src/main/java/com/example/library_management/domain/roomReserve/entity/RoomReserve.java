@@ -32,6 +32,10 @@ public class RoomReserve extends Timestamped {
     @JoinColumn(name = "room_id")
     private Room room;
 
+    // 낙관적 락 적용, RoomReserve 엔티티의 변경을 감지하여 버전충돌을 확인. -> 충돌시 OptimisticLockException 발생 테스트코드에서 활용.
+    @Version
+    private Integer version;
+
     public static RoomReserve createReservation(Room room, User user, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         RoomReserve roomReserve = new RoomReserve();
         roomReserve.room = room;

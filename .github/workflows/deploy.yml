@@ -45,6 +45,17 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
 
+      # 설정 파일들을 EC2로 복사
+      - name: Copy configuration files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_1 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,nginx/nginx.conf"
+          target: "~/library_management"
+          strip_components: 0
+
       - name: Deploy to AWS EC2 1
         uses: appleboy/ssh-action@master
         with:
@@ -57,15 +68,11 @@ jobs:
             cd ~/library_management
             
             echo "1. 현재 상태 백업 중..."
+            mkdir -p $HOME/library_management/backups  # 백업 디렉토리 명시적 생성
             if [ -f docker-compose.yml ]; then
-              # 현재 버전 정보 저장
-              CURRENT_VERSION=$(docker-compose images -q app)
-              if [ ! -z "$CURRENT_VERSION" ]; then
-                echo $CURRENT_VERSION > $BACKUP_DIR/last_version.txt
-                cp .env $BACKUP_DIR/.env.backup
-                cp docker-compose.yml $BACKUP_DIR/docker-compose.yml.backup
-                echo "현재 버전 백업 완료"
-              fi
+              cp .env backups/.env.backup
+              cp docker-compose.yml backups/docker-compose.yml.backup
+              echo "현재 버전 백업 완료"
             fi
             
             echo "2. Docker 컨테이너 및 이미지 정리 중..."
@@ -133,8 +140,9 @@ jobs:
                 echo "Redis 연결 테스트:"
                 redis-cli -h ${REDIS_HOST} -a ${REDIS_PASSWORD} ping
             
-                if [ -f .env.backup ]; then
-                  cp .env.backup .env
+                if [ -f backups/.env.backup ]; then
+                  cp backups/.env.backup .env
+                  cp backups/docker-compose.yml.backup docker-compose.yml
                   docker-compose up -d
                   echo "롤백 완료"
                 fi

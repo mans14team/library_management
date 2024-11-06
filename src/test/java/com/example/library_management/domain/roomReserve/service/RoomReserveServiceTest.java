@@ -2,7 +2,6 @@ package com.example.library_management.domain.roomReserve.service;
 
 import com.example.library_management.domain.room.entity.Room;
 import com.example.library_management.domain.room.enums.RoomStatus;
-import com.example.library_management.domain.room.repository.RoomRepository;
 import com.example.library_management.domain.room.service.RoomService;
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveCreateRequestDto;
 import com.example.library_management.domain.roomReserve.dto.request.RoomReserveUpdateRequestDto;
@@ -21,11 +20,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,7 +86,7 @@ class RoomReserveServiceTest {
         public void 생성가능상태의_스터디룸_중복되지않는시간_예약_성공() {
             // given
             when(roomService.findRoomById(room.getId())).thenReturn(room);
-            when(roomReserveRepository.findAllByRoomIdWithLock(room.getId())).thenReturn(roomReserveList);
+            when(roomReserveRepository.findAllByRoomId(room.getId())).thenReturn(roomReserveList);
             when(roomReserveRepository.save(any(RoomReserve.class))).thenAnswer(invocation -> {
                 RoomReserve savedReserve = invocation.getArgument(0);
                 ReflectionTestUtils.setField(savedReserve, "id", 5L); // 새로 저장되는 RoomReserve의 id
@@ -123,7 +127,7 @@ class RoomReserveServiceTest {
         public void 스터디룸_예약시간_중복_예약_실패() {
             // given
             when(roomService.findRoomById(room.getId())).thenReturn(room);
-            when(roomReserveRepository.findAllByRoomIdWithLock(room.getId())).thenReturn(roomReserveList);
+            when(roomReserveRepository.findAllByRoomId(room.getId())).thenReturn(roomReserveList);
 
             // 15~17 시 까지의 기존 예약과 중복되는 예약
             LocalDateTime reservationDate = LocalDateTime.of(2024, 10, 27, 15, 0);
@@ -136,6 +140,50 @@ class RoomReserveServiceTest {
                 roomReserveService.createRoomReserve(user, room.getId(), roomReserveCreateRequestDto);
             });
         }
+
+        // 낙관적 락 발생 by multithread ???
+        @Test
+        void 멀티스레드사용_낙관적락_적용_예외처리_확인() throws InterruptedException{
+            // Given
+            RoomReserveCreateRequestDto roomReserveCreateRequestDto = new RoomReserveCreateRequestDto(LocalDateTime.of(2024,10,27,10,0),
+                    LocalDateTime.of(2024,10,27,12,0));
+
+            when(roomService.findRoomById(any(Long.class))).thenReturn(room);
+
+            // 낙관적 락이 발생하도록 설정
+            doThrow(new OptimisticLockingFailureException("Lock exception"))
+                    .when(roomReserveRepository).save(any(RoomReserve.class));
+
+            // 멀티스레드 환경을 설정
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            CountDownLatch latch = new CountDownLatch(2);
+            Exception[] exceptionHolder = new Exception[1];
+
+            // 두 개의 스레드에서 동시에 예약을 시도
+            Runnable task = () -> {
+                try {
+                    roomReserveService.createRoomReserve(user, room.getId(), roomReserveCreateRequestDto);
+                } catch (Exception e) {
+                    exceptionHolder[0] = e;
+                } finally {
+                    latch.countDown();
+                }
+            };
+
+            // 두 스레드 실행
+            executor.submit(task);
+            executor.submit(task);
+
+            // 모든 스레드가 종료될 때까지 대기
+            latch.await(5, TimeUnit.SECONDS);
+            executor.shutdown();
+
+            // Then
+            assertNotNull(exceptionHolder[0]);
+            assertTrue(exceptionHolder[0] instanceof OptimisticLockConflictException);
+            verify(roomReserveRepository, times(2)).save(any(RoomReserve.class)); // 두 번 호출 확인
+        }
+
     }
 
     @Nested

@@ -13,10 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomReserveRepository extends JpaRepository<RoomReserve, Long> {
-    // 스터디룸 예약 - 동시성 제어 로직 (Pessimistic Lock)
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+
     @Query("SELECT r FROM RoomReserve r WHERE r.room.id = :roomId")
-    List<RoomReserve> findAllByRoomIdWithLock(@Param("roomId") Long roomId);
+    List<RoomReserve> findAllByRoomId(@Param("roomId") Long roomId);
 
     @Query("SELECT r FROM RoomReserve r WHERE r.user.id = :userId AND r.room.id = :roomId")
     Page<RoomReserve> findAllByUserIdAndRoomId(@Param("userId") Long userId, @Param("roomId") Long roomId, Pageable pageable);

@@ -12,12 +12,10 @@ import com.example.library_management.domain.room.exception.UnauthorizedRoomAcce
 import com.example.library_management.domain.room.repository.RoomRepository;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.enums.UserRole;
-import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -85,7 +83,6 @@ public class RoomService {
     public void validateRoomAccess(User user){
         // 사용자가 ADMIN 권한을 가지고 있는지 확인
         boolean isAdmin = user.getRole().equals(UserRole.ROLE_ADMIN);
-        System.out.println("권한 :"+user.getRole());
 
         if (!isAdmin) {
             throw new UnauthorizedRoomAccessException();

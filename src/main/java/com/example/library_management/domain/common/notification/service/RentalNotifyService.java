@@ -33,27 +33,26 @@ public class RentalNotifyService {
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
                         .toLocalDate().isEqual(LocalDate.now().plusDays(3)))
                 .toList();
-        log.info("잘 들어오나 확인");
+
         sendReminders(rentals3DaysBefore, "대여 만료 3일전입니다.책 반납 준비 해주세요!");
 
         List<BookRental> rentals1DaysBefore = rentalsDueIn3Days.stream()
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
                         .toLocalDate().isEqual(LocalDate.now().plusDays(1)))
                 .toList();
-        log.info("잘들어오나 확인 2");
+
         sendReminders(rentals1DaysBefore, "대여 만료 1일전입니다. 책 반납 준비 해주세요!");
 
         List<BookRental> rentalsDaysBefore = rentalsDueIn3Days.stream()
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
                         .toLocalDate().isEqual(LocalDate.now()))
                 .toList();
-        log.info("");
         sendReminders(rentalsDaysBefore, "오늘이 반납일입니다. 책 반납해주세요! ");
     }
 
 
     // 알람 생성 로직으로 알람을 보낼 사람들의 정보를 보내는 메서드
-    private void sendReminders(List<BookRental> rentalList, String message) {
+    public void sendReminders(List<BookRental> rentalList, String message) {
 
 
         for (BookRental list : rentalList) {
@@ -67,7 +66,7 @@ public class RentalNotifyService {
     }
 
     // 반납 기한이 n일 후인 대여 정보를 조회하는 메서드
-    private List<BookRental> getRentalsDueInRange(int days) {
+    public List<BookRental> getRentalsDueInRange(int days) {
         LocalDateTime startDate = LocalDate.now().minusDays(7).atStartOfDay();
         LocalDateTime endDate = LocalDate.now().plusDays(days).atTime(LocalTime.MAX); // 현재 날짜 + dayBefore
         log.info("startDate:"+startDate+" endDate: "+endDate );

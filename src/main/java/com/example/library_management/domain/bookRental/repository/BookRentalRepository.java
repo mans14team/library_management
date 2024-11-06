@@ -19,7 +19,7 @@ public interface BookRentalRepository extends JpaRepository<BookRental, Long> {
 
     List<BookRental> findAllByUser(User user);
 
-    @Query("select br from BookRental br join fetch br.bookCopy where br.returnDate is null and br.rentalDate between :startDate and :endDate")
+    @Query("select br from BookRental br join fetch br.bookCopy join fetch br.user where br.returnDate is null and br.rentalDate between :startDate and :endDate")
     List<BookRental> findAllRentalDateBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
 

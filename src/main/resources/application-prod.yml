@@ -1,0 +1,91 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_HOST}/library_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      timeout: 3000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+        use_sql_comments: false
+        dialect: org.hibernate.dialect.MySQLDialect
+        default_batch_fetch_size: 100
+    open-in-view: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    com.example.library_management: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+  security:
+    enabled: false
+
+jwt:
+  secret.key: ${JWT_SECRET_KEY}
+
+owner:
+  token: ${OWNER_TOKEN}
+
+payment:
+  retry:
+    max-attempts: 3
+    delay: 1000  # 1초
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  client-key: ${TOSS_CLIENT_KEY}
+  success-url: ${TOSS_SUCCESS_URL}
+  fail-url: ${TOSS_FAIL_URL}
+  api:
+    base-url: ${TOSS_BASE_URL}
+
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: ${USER_NAME}
+  password: ${USER_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true

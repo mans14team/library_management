@@ -3,6 +3,7 @@ package com.example.library_management.domain.book.controller;
 import com.example.library_management.domain.book.dto.BookResponseDto;
 import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
+import com.example.library_management.domain.book.dto.BookUpdateRequestDto;
 import com.example.library_management.domain.book.service.BookService;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class BookController {
     }
 
     @PutMapping("/{book_id}")
-    public ResponseEntity<BookResponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookRequestDto bookRequestDto) {
+    public ResponseEntity<BookResponseDto> updateBook(@PathVariable("book_id") Long bookId, @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody BookUpdateRequestDto bookRequestDto) {
         BookResponseDto bookResponseDto = bookService.updateBook(bookId, bookRequestDto, userDetails);
         return ResponseEntity.ok(bookResponseDto);
     }
@@ -46,12 +47,8 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<BookResponseDtos>> getBooks(@RequestParam(value = "category", required = false) Long categoryId) {
         List<BookResponseDtos> bookResponseDtosList;
-        if(categoryId != null){
-            bookResponseDtosList = bookService.getBooksByCategory(categoryId);
-        }
-        else {
-            bookResponseDtosList = bookService.getBooks();
-        }
+
+        bookResponseDtosList = bookService.getBooks();
 
         return ResponseEntity.ok(bookResponseDtosList);
     }

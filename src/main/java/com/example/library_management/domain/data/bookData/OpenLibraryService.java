@@ -26,7 +26,7 @@ public class OpenLibraryService {
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);  // JSON 정렬
     }
 
-    public void fetchAndSaveSelectedFields(String subject, int totalBooks) {
+    public void fetchAndSaveSelectedFields(int totalBooks) {
         int page = 1;
         int booksFetched = 0;
 
@@ -40,7 +40,7 @@ public class OpenLibraryService {
             while (booksFetched < totalBooks) {
                 // API 요청 URL 생성
                 String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
-                        .queryParam("q", "subject:" + subject)
+                        .queryParam("q", "subject:" + "*")
                         .queryParam("page", page)
                         .toUriString();
 
@@ -57,12 +57,12 @@ public class OpenLibraryService {
                 for (Map<String, Object> book : books) {
                     String bookKey = (String) book.get("key");
                     Map<String, Object> selectedBook = Map.of(
-                            "bookKey", bookKey,
+                            "isbn", bookKey,
                             "bookTitle", book.get("title"),
-                            "bookAuthor", book.get("author_name"),
                             "bookPublished", book.get("first_publish_year"),
-                            "bookSubject", book.get("subject"),
-                            "bookPublisher", book.get("publisher")
+                            "authors", book.get("author_name"),
+                            "publishers", book.get("publisher"),
+                            "subjects", book.get("subject")
                     );
                     selectedBooks.add(selectedBook);
                     booksFetched++;

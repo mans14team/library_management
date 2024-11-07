@@ -1,7 +1,6 @@
 package com.example.library_management.domain.book.entity;
 
 import com.example.library_management.domain.book.dto.BookRequestDto;
-import com.example.library_management.domain.bookCategory.entity.BookCategory;
 import com.example.library_management.domain.bookCopy.entity.BookCopy;
 import com.example.library_management.domain.review.entity.Review;
 import jakarta.persistence.*;
@@ -24,44 +23,22 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String isbn;
+
     @Column(nullable = false)
     private String bookTitle;
 
+    private Long bookPublished;
 
+    @ElementCollection
+    private List<String> authors = new ArrayList<>();
 
-//    @ElementCollection
-//    private List<String> bookAuthor;
-//
-//    @ElementCollection
-//    private List<String> bookPublisher;
-//
-//    @ElementCollection
-//    private List<Long> bookPublished;
-//
-//    @ElementCollection
-//    private List<Long> bookSubject;
+    @ElementCollection
+    private List<String> publishers = new ArrayList<>();
 
-
-
-    //========== 지울거=========
-    private String bookDescription;
-
-    private String bookAuthor;
-
-    @Column(nullable = false)
-    private String bookPublisher;
-
-    @Column(nullable = false)
-    private LocalDate bookPublished;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private BookCategory category;
-    //=========================
-
-
-
-
+    @ElementCollection
+    private List<String> subjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "book")
     private List<BookCopy> copyList = new ArrayList<>();
@@ -69,21 +46,46 @@ public class Book {
     @OneToMany(mappedBy = "book",cascade = CascadeType.REMOVE)
     private List<Review> reviewList = new ArrayList<>();
 
-    public Book(String bookTitle, String bookDescription, String bookAuthor, String bookPublisher, LocalDate bookPublished, BookCategory category) {
+    public Book(String isbn, String bookTitle, Long bookPublished, List<String> authors, List<String> publishers, List<String> subjects) {
+        this.isbn = isbn;
         this.bookTitle = bookTitle;
-        this.bookDescription = bookDescription;
-        this.bookAuthor = bookAuthor;
-        this.bookPublisher = bookPublisher;
         this.bookPublished = bookPublished;
-        this.category = category;
+        if(!authors.isEmpty()) this.authors.addAll(authors);
+        if(!publishers.isEmpty()) this.publishers.addAll(publishers);
+        if(!subjects.isEmpty()) this.subjects.addAll(subjects);
     }
 
-    public void update(String bookTitle, String bookDescription, String bookAuthor, String bookPublisher, LocalDate bookPublished, BookCategory category) {
+    public void update(
+            String bookTitle,
+            Long bookPublished,
+            List<String> addAuthors,
+            List<String> addPublishers,
+            List<String> addSubjects,
+            List<String> removeAuthors,
+            List<String> removePublishers,
+            List<String> removeSubjects
+    ) {
         if(bookTitle != null) this.bookTitle = bookTitle;
-        if(bookDescription != null) this.bookDescription = bookDescription;
-        if(bookAuthor != null) this.bookAuthor = bookAuthor;
-        if(bookPublisher != null) this.bookPublisher = bookPublisher;
         if(bookPublished != null) this.bookPublished = bookPublished;
-        this.category = category;
+        if(addAuthors != null) this.authors.addAll(addAuthors);
+        if(addPublishers != null) this.publishers.addAll(addPublishers);
+        if(addSubjects != null) this.subjects.addAll(addSubjects);
+        if(removeAuthors != null) this.authors.removeAll(removeAuthors);
+        if(removePublishers != null) this.publishers.removeAll(removePublishers);
+        if(removeSubjects != null) this.subjects.removeAll(removeSubjects);
     }
+
+//    public void addAuthors(List<String> authors){
+//        this.authors.addAll(authors);
+//    }
+//    public void addPublishers(List<String> publishers){
+//        this.publishers.addAll(publishers);
+//    }
+//    public void addSubjects(List<String> subjects){
+//        this.subjects.addAll(subjects);
+//    }
+//
+//    public void removeAuthors(List<String> authors){ this.authors.removeAll(authors); }
+//    public void removePublishers(List<String> publishers){ this.publishers.removeAll(publishers); }
+//    public void removeSubjects(List<String> subjects){ this.subjects.removeAll(subjects); }
 }

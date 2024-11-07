@@ -5,23 +5,24 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
 public class BookResponseDto {
     public BookResponseDto(Book book) {
+        this.isbn = book.getIsbn();
         this.bookTitle = book.getBookTitle();
-        this.bookDescription = book.getBookDescription();
-        this.bookAuthor = book.getBookAuthor();
-        this.bookPublisher = book.getBookPublisher();
         this.bookPublished = book.getBookPublished();
-        this.category = book.getCategory().getCategoryName();
+        this.authors = book.getAuthors();
+        this.publishers = book.getPublishers();
+        this.subjects = book.getSubjects();
     }
 
+    private String isbn;
     private String bookTitle;
-    private String bookDescription;
-    private String bookAuthor;
-    private String bookPublisher;
-    private LocalDate bookPublished;
-    private String category;
+    private Long bookPublished;
+    private List<String> authors;
+    private List<String> publishers;
+    private List<String> subjects;
 }

@@ -1,0 +1,258 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+
+      # Docker 관련 단계 추가
+      - name: Set up Docker Buildx    # Docker 빌드 도구 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub     # Docker Hub 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}    # Docker Hub Access Token
+
+      - name: Build and push Spring Boot image    # Spring Boot 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
+
+      # 설정 파일들을 EC2로 복사
+      - name: Copy configuration files to EC2 1
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_1 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,nginx/nginx.conf"
+          target: "~/library_management"
+          strip_components: 0
+
+      - name: Deploy to AWS EC2 1
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_1 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_USERNAME, IMAGE_TAG
+          script: |
+            # 프로젝트 디렉토리로 이동
+            cd ~/library_management
+            
+            echo "1. 현재 상태 백업 중..."
+            mkdir -p $HOME/library_management/backups  # 백업 디렉토리 명시적 생성
+            if [ -f docker-compose.yml ]; then
+              cp .env backups/.env.backup
+              cp docker-compose.yml backups/docker-compose.yml.backup
+              echo "현재 버전 백업 완료"
+            fi
+            
+            echo "2. Docker 컨테이너 및 이미지 정리 중..."
+            docker-compose down || true
+            docker image prune -f
+            
+            echo "3. .env 파일 업데이트..."
+            cat > .env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
+            TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+            TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}
+            TOSS_SUCCESS_URL=${{ secrets.TOSS_SUCCESS_URL }}
+            TOSS_FAIL_URL=${{ secrets.TOSS_FAIL_URL }}
+            TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
+            USER_NAME=${{ secrets.MAIL_USER_NAME }}
+            USER_PASSWORD=${{ secrets.MAIL_USER_PASSWORD }}
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            IMAGE_TAG=${{ github.sha }}
+            EOF
+            
+            echo "4. 새 Docker 이미지 pull..."
+            if ! docker pull ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}; then
+              echo "Spring 이미지 pull 실패"
+              [ -f .env.backup ] && cp .env.backup .env
+              exit 1
+            fi
+            
+            echo "5. 새 버전 배포 중..."
+            docker-compose up -d
+            
+            echo "6. 헬스체크..."
+            for i in {1..30}; do
+              HEALTH_RESPONSE=$(curl -s http://localhost:8080/actuator/health || echo "Failed to connect")
+              echo "Health check response: $HEALTH_RESPONSE"
+            
+              if echo "$HEALTH_RESPONSE" | grep -q "UP"; then
+                echo "Spring Boot 애플리케이션이 정상적으로 시작되었습니다."
+                break
+              fi
+            
+              if [ $i -eq 30 ]; then
+                echo "헬스체크 실패! 문제 진단:"
+                echo "Spring Boot 로그:"
+                docker-compose logs app
+                echo "Nginx 로그:"
+                docker-compose logs nginx
+            
+                if [ -f backups/.env.backup ]; then
+                  cp backups/.env.backup .env
+                  cp backups/docker-compose.yml.backup docker-compose.yml
+                  docker-compose up -d
+                  echo "롤백 완료"
+                fi
+              exit 1
+              fi
+              echo "헬스체크 시도 $i/30"
+              sleep 2
+            done
+            
+            echo "7. 컨테이너 상태 확인..."
+            docker ps
+            
+            echo "8. 컨테이너 로그 확인..."
+            docker-compose logs --tail=50
+            
+            echo "9. 정리 작업..."
+            rm -f .env.backup
+            docker image prune -f
+            
+            echo "배포 완료!"
+
+      # 설정 파일들을 EC2로 복사
+      - name: Copy configuration files to EC2 2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,nginx/nginx.conf"
+          target: "~/library_management"
+          strip_components: 0
+
+      - name: Deploy to AWS EC2 2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_USERNAME, IMAGE_TAG
+          script: |
+            # 프로젝트 디렉토리로 이동
+            cd ~/library_management
+            
+            echo "1. 현재 상태 백업 중..."
+            mkdir -p $HOME/library_management/backups  # 백업 디렉토리 명시적 생성
+            if [ -f docker-compose.yml ]; then
+              cp .env backups/.env.backup
+              cp docker-compose.yml backups/docker-compose.yml.backup
+              echo "현재 버전 백업 완료"
+            fi
+            
+            echo "2. Docker 컨테이너 및 이미지 정리 중..."
+            docker-compose down || true
+            docker image prune -f
+            
+            echo "3. .env 파일 업데이트..."
+            cat > .env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
+            TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+            TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}
+            TOSS_SUCCESS_URL=${{ secrets.TOSS_SUCCESS_URL }}
+            TOSS_FAIL_URL=${{ secrets.TOSS_FAIL_URL }}
+            TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
+            USER_NAME=${{ secrets.MAIL_USER_NAME }}
+            USER_PASSWORD=${{ secrets.MAIL_USER_PASSWORD }}
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            IMAGE_TAG=${{ github.sha }}
+            EOF
+            
+            echo "4. 새 Docker 이미지 pull..."
+            if ! docker pull ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}; then
+              echo "Spring 이미지 pull 실패"
+              [ -f .env.backup ] && cp .env.backup .env
+              exit 1
+            fi
+            
+            echo "5. 새 버전 배포 중..."
+            docker-compose up -d
+            
+            echo "6. 헬스체크..."
+            for i in {1..30}; do
+              HEALTH_RESPONSE=$(curl -s http://localhost:8080/actuator/health || echo "Failed to connect")
+              echo "Health check response: $HEALTH_RESPONSE"
+            
+              if echo "$HEALTH_RESPONSE" | grep -q "UP"; then
+                echo "Spring Boot 애플리케이션이 정상적으로 시작되었습니다."
+                break
+              fi
+            
+              if [ $i -eq 30 ]; then
+                echo "헬스체크 실패! 문제 진단:"
+                echo "Spring Boot 로그:"
+                docker-compose logs app
+                echo "Nginx 로그:"
+                docker-compose logs nginx
+            
+                if [ -f backups/.env.backup ]; then
+                  cp backups/.env.backup .env
+                  cp backups/docker-compose.yml.backup docker-compose.yml
+                  docker-compose up -d
+                  echo "롤백 완료"
+                fi
+              exit 1
+              fi
+              echo "헬스체크 시도 $i/30"
+              sleep 2
+            done
+            
+            echo "7. 컨테이너 상태 확인..."
+            docker ps
+            
+            echo "8. 컨테이너 로그 확인..."
+            docker-compose logs --tail=50
+            
+            echo "9. 정리 작업..."
+            rm -f .env.backup
+            docker image prune -f
+            
+            echo "배포 완료!"

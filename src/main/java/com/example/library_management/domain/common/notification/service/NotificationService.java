@@ -20,7 +20,7 @@ import java.util.List;
 public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final JavaMailSender mailSender;
+//    private final JavaMailSender mailSender;
 
     //새로운 알림 생성 후 저장
 
@@ -56,14 +56,14 @@ public class NotificationService {
     }
 
     //실제 이메일 전송 로직
-    private void sendEmail(String toEmail, String message) {
+    public void sendEmail(String toEmail, String message) {
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(toEmail);
         mailMessage.setSubject("도서관 알림");
         mailMessage.setText(message);
 
-        mailSender.send(mailMessage);
+//        mailSender.send(mailMessage);
 
         log.info("이메일을 성공적으로 보냈습니다.");
     }

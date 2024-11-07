@@ -10,8 +10,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${spring.data.redis.url}")
-    private String url;
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
+
+    @Value("${spring.data.redis.password}")
+    private String password;
 
     @Bean
     public RedissonClient redissonClient() {
@@ -19,7 +25,18 @@ public class RedissonConfig {
         //redisson 설정을 정의하는데 사용
         Config config = new Config();
 
-        config.useSingleServer().setAddress(url);
+        // Redis 연결 설정
+        config.useSingleServer()
+                .setAddress("redis://" + redisHost + ":" + redisPort)
+                .setPassword(password)
+                .setConnectionMinimumIdleSize(1)
+                .setConnectionPoolSize(2)
+                .setRetryAttempts(3)
+                .setRetryInterval(1500)
+                .setDnsMonitoringInterval(5000)
+                .setSubscriptionConnectionMinimumIdleSize(1)
+                .setSubscriptionConnectionPoolSize(2)
+                .setTimeout(3000);
 
         return Redisson.create(config);
 

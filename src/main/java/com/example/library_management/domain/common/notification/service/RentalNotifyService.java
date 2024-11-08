@@ -27,9 +27,8 @@ public class RentalNotifyService {
     public void sendRentalReminders() {
 
         List<BookRental> rentalsDueIn3Days = getRentalsDueInRange(3);
-        System.out.println(rentalsDueIn3Days.size());
 
-        List<BookRental> rentals3DaysBefore = rentalsDueIn3Days.stream()
+        List<BookRental> rentals3DaysBefore = rentalsDueIn3Days.stream()  // 메서드로 변환
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
                         .toLocalDate().isEqual(LocalDate.now().plusDays(3)))
                 .toList();
@@ -57,9 +56,7 @@ public class RentalNotifyService {
 
         for (BookRental list : rentalList) {
             User user = list.getUser();
-            log.info("userId : " + user.getId());
             NotificationRequestDto requestDto = new NotificationRequestDto(user.getId(), message);
-            log.info("request"+requestDto.getUserId());
             notificationService.createNotification(requestDto);
 
         }
@@ -69,7 +66,6 @@ public class RentalNotifyService {
     public List<BookRental> getRentalsDueInRange(int days) {
         LocalDateTime startDate = LocalDate.now().minusDays(7).atStartOfDay();
         LocalDateTime endDate = LocalDate.now().plusDays(days).atTime(LocalTime.MAX); // 현재 날짜 + dayBefore
-        log.info("startDate:"+startDate+" endDate: "+endDate );
         return bookRentalRepository.findAllRentalDateBetween(startDate, endDate);
 
     }

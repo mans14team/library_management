@@ -22,12 +22,33 @@ public class StudyRoomNotifyService {
 
     // 예약일에 따른 알림을 생성하는 메서드
     public void sendReservationReminders() {
-        List<RoomReserve> reservation1DaysBefore = getReservationDueIn(1);
-        sendReminders(reservation1DaysBefore, "스터디룸 예약일 1일전 알림입니다.");
+        LocalDateTime startDate = LocalDate.now().atStartOfDay();
+        LocalDateTime endDate = LocalDate.now().plusDays(1).atTime(LocalTime.MAX);
 
-        List<RoomReserve> reservationDay = getReservationDueIn(0);
-        sendReminders(reservationDay , "스터디룸 예약한 날입니다.");
+        //필요한 예약일 리스트 전부 가져오기
+        List<RoomReserve> allReservations = roomReserveRepository.findReservation(startDate, endDate);
+        sendRemindersforDueDate(allReservations, 1, "스터디룸 예약일 1일전 알림입니다");
+        sendRemindersforDueDate(allReservations, 0, "스터디룸 예약일 0일전 알림입니다");
 
+
+    }
+
+    // 예약일에 따라 필터링하는 메서드
+    public void sendRemindersforDueDate(List<RoomReserve> reserves, int dayBefore, String message) {
+        List<RoomReserve> filterReserves = reserves.stream()
+                .filter(roomReserve -> roomReserve.getReservationDateEnd()
+                        .toLocalDate().isEqual(LocalDate.now().plusDays(dayBefore))
+                ).toList();
+        sendReminders(filterReserves, message);
+    }
+
+    // 필터링을 해서 해당하는 날짜의 자정시간~끝까지 조회
+    private boolean isDueIn(RoomReserve reservation, int daysBefore) {
+        LocalDateTime targetStart = LocalDate.now().plusDays(daysBefore).atStartOfDay();
+        LocalDateTime targetEnd = LocalDate.now().plusDays(daysBefore).atTime(LocalTime.MAX);
+
+        return !reservation.getReservationDateEnd().isBefore(targetStart) &&
+                !reservation.getReservationDateEnd().isAfter(targetEnd);
     }
 
     // 해당 스터디룸을 예약한 사람들에게 보낼 메시지를 전달하는 로직
@@ -38,13 +59,6 @@ public class StudyRoomNotifyService {
 
             notificationService.createNotification(notificationRequest);
         }
-    }
-
-    // 1일전 당일 예약날짜인 스터디룸 리스트 뽑아오는 로직
-    private List<RoomReserve> getReservationDueIn(int dayBefore) {
-        LocalDateTime startDate = LocalDate.now().plusDays(dayBefore).atStartOfDay();
-        LocalDateTime endDate = LocalDate.now().plusDays(dayBefore).atTime(LocalTime.MAX);
-        return roomReserveRepository.findReservation(startDate,endDate);
     }
 
 

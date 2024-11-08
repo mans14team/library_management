@@ -20,18 +20,17 @@ import java.util.List;
 public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-//    private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     //새로운 알림 생성 후 저장
 
     public void createNotification(NotificationRequestDto requestDto) {
-        log.info("알림 생성 로직 ");
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(NotFoundUserException::new);
 
         Notification notification = new Notification(user, requestDto.getMessage());
 
-        log.info("notification  :" + notification.getUser());
+
         notificationRepository.save(notification);
 
         sendEmailNotifications();
@@ -39,7 +38,7 @@ public class NotificationService {
 
     //이메일로 전송되지 않은 알림 전송
     public void sendEmailNotifications() {
-        log.info("이메일로 보내기전: 로그 확인");
+
 
         List<Notification> unNotificationList = notificationRepository.findBySentFalse();
 
@@ -63,7 +62,7 @@ public class NotificationService {
         mailMessage.setSubject("도서관 알림");
         mailMessage.setText(message);
 
-//        mailSender.send(mailMessage);
+        mailSender.send(mailMessage);
 
         log.info("이메일을 성공적으로 보냈습니다.");
     }

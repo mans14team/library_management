@@ -27,19 +27,19 @@ public class StudyRoomNotifyService {
 
         //필요한 예약일 리스트 전부 가져오기
         List<RoomReserve> allReservations = roomReserveRepository.findReservation(startDate, endDate);
-
-        //1일전 예약 알림 필터링
-        List<RoomReserve> reservation1daysBefore = allReservations.stream()
-                .filter(reservation -> isDueIn(reservation, 1))
-                .toList();
-        sendReminders(reservation1daysBefore, "스터디룸 예약 1일전 알림입니다.");
-
-        List<RoomReserve> reservationDay = allReservations.stream()
-                .filter(reservation -> isDueIn(reservation, 0))
-                .toList();
-        sendReminders(reservationDay, "스터디룸 예약일입니다.");
+        sendRemindersforDueDate(allReservations, 1, "스터디룸 예약일 1일전 알림입니다");
+        sendRemindersforDueDate(allReservations, 0, "스터디룸 예약일 0일전 알림입니다");
 
 
+    }
+
+    // 예약일에 따라 필터링하는 메서드
+    public void sendRemindersforDueDate(List<RoomReserve> reserves, int dayBefore, String message) {
+        List<RoomReserve> filterReserves = reserves.stream()
+                .filter(roomReserve -> roomReserve.getReservationDateEnd()
+                        .toLocalDate().isEqual(LocalDate.now().plusDays(dayBefore))
+                ).toList();
+        sendReminders(filterReserves, message);
     }
 
     // 필터링을 해서 해당하는 날짜의 자정시간~끝까지 조회

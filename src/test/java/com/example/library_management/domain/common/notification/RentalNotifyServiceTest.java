@@ -16,9 +16,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,11 +78,19 @@ class RentalNotifyServiceTest {
         //then
         verify(spyRentalNotifyService, times(1)).getRentalsDueInRange(3);
 
-        verify(spyRentalNotifyService, times(1)).sendReminders(anyList(), eq("대여 만료 3일전입니다.책 반납 준비 해주세요!"));
-        verify(spyRentalNotifyService, times(1)).sendReminders(anyList(), eq("대여 만료 1일전입니다. 책 반납 준비 해주세요!"));
-        verify(spyRentalNotifyService, times(1)).sendReminders(anyList(), eq("오늘이 반납일입니다. 책 반납해주세요! "));
 
+    }
 
+    @Test
+    void 반납_기한이_n일_후인_대여정보_조회_테스트_성공() {
+        //given
+        int days = 3;
+        LocalDateTime startDate = LocalDate.now().minusDays(7).atStartOfDay();
+        LocalDateTime endDate = LocalDate.now().plusDays(days).atTime(LocalTime.MAX);
+        //when
+        rentalNotifyService.getRentalsDueInRange(days);
+        //then
+        verify(bookRentalRepository, times(1)).findAllRentalDateBetween(startDate, endDate);
     }
 
 

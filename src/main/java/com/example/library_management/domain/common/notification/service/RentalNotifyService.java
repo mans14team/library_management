@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -27,26 +28,20 @@ public class RentalNotifyService {
     public void sendRentalReminders() {
 
         List<BookRental> rentalsDueIn3Days = getRentalsDueInRange(3);
+        sendReminderForDueDate(rentalsDueIn3Days,3,"책 반납일 3일전입니다 책 반납 준비해주세요");
+        sendReminderForDueDate(rentalsDueIn3Days,1,"책 반납일 1일전입니다. 책 반납 준비해주세요");
+        sendReminderForDueDate(rentalsDueIn3Days,0,"책 반납일입니다. 책 반납해주세요");
+    }
 
-        List<BookRental> rentals3DaysBefore = rentalsDueIn3Days.stream()  // 메서드로 변환
+    // 대여 반납일을 기준으로 알림 보내기
+    public void sendReminderForDueDate(List<BookRental> rentals, int daysBefore, String message) {
+
+        List<BookRental> filterRentals = rentals.stream()
                 .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
-                        .toLocalDate().isEqual(LocalDate.now().plusDays(3)))
-                .toList();
+                        .toLocalDate().isEqual(LocalDate.now().plusDays(daysBefore))
+                ).toList();
+        sendReminders(filterRentals, message);
 
-        sendReminders(rentals3DaysBefore, "대여 만료 3일전입니다.책 반납 준비 해주세요!");
-
-        List<BookRental> rentals1DaysBefore = rentalsDueIn3Days.stream()
-                .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
-                        .toLocalDate().isEqual(LocalDate.now().plusDays(1)))
-                .toList();
-
-        sendReminders(rentals1DaysBefore, "대여 만료 1일전입니다. 책 반납 준비 해주세요!");
-
-        List<BookRental> rentalsDaysBefore = rentalsDueIn3Days.stream()
-                .filter(bookRental -> bookRental.getRentalDate().plusDays(7)
-                        .toLocalDate().isEqual(LocalDate.now()))
-                .toList();
-        sendReminders(rentalsDaysBefore, "오늘이 반납일입니다. 책 반납해주세요! ");
     }
 
 

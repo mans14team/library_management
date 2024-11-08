@@ -1,5 +1,9 @@
 package com.example.library_management.domain.roomReserve.service;
 
+import com.example.library_management.domain.membership.enums.MembershipStatus;
+import com.example.library_management.domain.membership.exception.MembershipCancelledException;
+import com.example.library_management.domain.membership.exception.MembershipExpiredException;
+import com.example.library_management.domain.membership.exception.MembershipNotFoundException;
 import com.example.library_management.domain.room.entity.Room;
 import com.example.library_management.domain.room.enums.RoomStatus;
 import com.example.library_management.domain.room.service.RoomService;
@@ -13,8 +17,10 @@ import com.example.library_management.domain.roomReserve.entity.RoomReserve;
 import com.example.library_management.domain.roomReserve.exception.*;
 import com.example.library_management.domain.roomReserve.repository.RoomReserveRepository;
 import com.example.library_management.domain.user.entity.User;
+import com.example.library_management.global.config.CustomConfig;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -28,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomReserveService {
@@ -35,6 +42,7 @@ public class RoomReserveService {
     private final RoomReserveRepository roomReserveRepository;
     private final RoomService roomService;
     private final RedissonClient redissonClient;
+    private final CustomConfig customConfig;
 
     /*
         예약하고자 하는 roomId 의 예약 가능 여부 확인.
@@ -56,14 +64,15 @@ public class RoomReserveService {
     @Transactional
     public RoomReserveCreateResponseDto createRoomReserve(User user, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         // 요청자 권한 확인    - 멤버쉽 권한 만이 스터디룸 예약을 할 수 있다.
-        // User 객체의 멤버쉽 권한 확인 로직 미추가상태. - 10/23
-
+        validateUserMembership(user);
 
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
 
-        // 현재의 Month값이 시험기간인 4,5,6,7월인 경우 Redis 분산락과 낙관적 락을 혼용.
-        boolean useRedis = (currentMonth == 4 || currentMonth == 5 || currentMonth == 6 || currentMonth == 7);
+        // 현재의 Month값이 트래픽이 몰리는 기간인 경우(yml파일에서 가져온 정보를 바탕으로) Redis 분산락과 낙관적 락을 혼용.
+        List<Integer> activeMonths = customConfig.getActiveMonths();
+        boolean useRedis = activeMonths.contains(currentMonth);
+
         RLock lock = redissonClient.getLock("RoomReserveLock:" + roomId);
 
         try {
@@ -90,14 +99,16 @@ public class RoomReserveService {
     @Transactional
     public RoomReserveUpdateResponseDto updateRoomReserve(User user, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
         // 요청자 권한 확인    - 해당 스터디룸 예약을 했던 유저만이 스터디룸 예약을 수정 할 수 있다.
-
+        // 중복 뜨는건, 추후 AOP 고려
+        validateUserMembership(user);
 
         // 요청 날짜 확인
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
 
-        // 현재의 Month값이 시험기간인 4,5,6,7월인 경우 Redis 분산락과 낙관적 락을 혼용.
-        boolean useRedis = (currentMonth == 4 || currentMonth == 5 || currentMonth == 6 || currentMonth == 7);
+        List<Integer> activeMonths = customConfig.getActiveMonths();
+        boolean useRedis = activeMonths.contains(currentMonth);
+
         RLock lock = redissonClient.getLock("RoomReserveLock:" + roomId);
 
         // 예약 정보 확인.
@@ -145,7 +156,7 @@ public class RoomReserveService {
     @Transactional
     public RoomReserveDeleteResponseDto deleteRoomReserve(User user, Long roomId, Long reserveId) {
         // 요청자 권한 확인 - 멤버쉽 권한이 아니면 예외처리.
-
+        validateUserMembership(user);
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
@@ -277,6 +288,27 @@ public class RoomReserveService {
             return new RoomReserveCreateResponseDto(savedRoomReserve);
         } catch (OptimisticLockingFailureException e) {
             throw new OptimisticLockConflictException();
+        }
+    }
+
+    // 멤버쉽 보유 체크
+    private void validateUserMembership(User user) {
+        if (user.getMembership() == null) {
+            throw new MembershipNotFoundException();
+        }
+
+        MembershipStatus status = user.getMembership().getStatus();
+
+        switch (status) {
+            case ACTIVE:
+                log.info("User ID {} has an active membership.", user.getId());
+                break;
+            case EXPIRED:
+                throw new MembershipExpiredException();
+            case CANCELLED:
+                throw new MembershipCancelledException();
+            default:
+                throw new MembershipNotFoundException();
         }
     }
 }

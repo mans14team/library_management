@@ -62,6 +62,8 @@ public enum GlobalExceptionConst {
     OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "다른 사용자에 의해 예약 충돌이 발생하였습니다, 새로고침 후 재시도해주세요."),
     DUPLICATE_PAYMENT(HttpStatus.CONFLICT, "이미 처리된 결제입니다."),
     ACTIVE_MEMBERSHIP_EXISTS(HttpStatus.CONFLICT, "이미 활성화된 멤버십이 존재합니다."),
+    MEMBERSHIP_EXPIRED(HttpStatus.CONFLICT, "현재 멤버십이 만료된 상태입니다."),
+    MEMBERSHIP_CANCELLED(HttpStatus.CONFLICT, "현재 멤버십이 중단된 상태입니다."),
 
     // 상태코드 422
     ROOM_RESERVE_UNPROCESSABLE(HttpStatus.UNPROCESSABLE_ENTITY, "해당 스터디룸 에약이 불가능합니다."),

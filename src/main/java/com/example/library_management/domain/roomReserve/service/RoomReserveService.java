@@ -17,6 +17,7 @@ import com.example.library_management.domain.roomReserve.entity.RoomReserve;
 import com.example.library_management.domain.roomReserve.exception.*;
 import com.example.library_management.domain.roomReserve.repository.RoomReserveRepository;
 import com.example.library_management.domain.user.entity.User;
+import com.example.library_management.global.config.CustomConfig;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class RoomReserveService {
     private final RoomReserveRepository roomReserveRepository;
     private final RoomService roomService;
     private final RedissonClient redissonClient;
+    private final CustomConfig customConfig;
 
     /*
         예약하고자 하는 roomId 의 예약 가능 여부 확인.
@@ -67,8 +69,10 @@ public class RoomReserveService {
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
 
-        // 현재의 Month값이 시험기간인 4,5,6,7월인 경우 Redis 분산락과 낙관적 락을 혼용.
-        boolean useRedis = (currentMonth == 4 || currentMonth == 5 || currentMonth == 6 || currentMonth == 7);
+        // 현재의 Month값이 트래픽이 몰리는 기간인 경우(yml파일에서 가져온 정보를 바탕으로) Redis 분산락과 낙관적 락을 혼용.
+        List<Integer> activeMonths = customConfig.getActiveMonths();
+        boolean useRedis = activeMonths.contains(currentMonth);
+
         RLock lock = redissonClient.getLock("RoomReserveLock:" + roomId);
 
         try {
@@ -102,8 +106,9 @@ public class RoomReserveService {
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
 
-        // 현재의 Month값이 시험기간인 4,5,6,7월인 경우 Redis 분산락과 낙관적 락을 혼용.
-        boolean useRedis = (currentMonth == 4 || currentMonth == 5 || currentMonth == 6 || currentMonth == 7);
+        List<Integer> activeMonths = customConfig.getActiveMonths();
+        boolean useRedis = activeMonths.contains(currentMonth);
+
         RLock lock = redissonClient.getLock("RoomReserveLock:" + roomId);
 
         // 예약 정보 확인.

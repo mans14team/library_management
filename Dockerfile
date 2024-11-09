@@ -10,12 +10,16 @@ RUN ./gradlew bootJar
 
 FROM openjdk:17-jdk-slim
 RUN apt-get update && \
-    apt-get install -y curl redis-tools && \
+    apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
+# 포트 설정 추가
+EXPOSE 8080
+
 # JVM 옵션 설정
 ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+ENV TZ=Asia/Seoul
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

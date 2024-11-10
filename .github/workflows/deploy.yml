@@ -119,9 +119,40 @@ jobs:
       - name: Health check
         run: |
           echo "Waiting for deployment to complete..."
-          sleep 30
-          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }}/actuator/health || echo "failed")
-          if [ "$response" != "200" ]; then
-            echo "Health check failed with status: $response"
-            exit 1
-          fi
+          # 배포 완료 대기 시간 증가
+          sleep 60
+          
+          # Elastic Beanstalk 환경 URL 가져오기
+          EB_ENV_URL=$(aws elasticbeanstalk describe-environments \
+            --environment-names ${{ env.EB_ENV_NAME }} \
+            --query 'Environments[0].CNAME' \
+            --output text)
+          
+          echo "Checking health at: http://${EB_ENV_URL}/actuator/health"
+          
+          # 최대 5번 재시도
+          for i in {1..5}
+          do
+            response=$(curl -s -o /dev/null -w "%{http_code}" "http://${EB_ENV_URL}/actuator/health" || echo "failed")
+            if [ "$response" = "200" ]; then
+              echo "Health check successful!"
+              exit 0
+            fi
+            echo "Attempt $i: Health check failed with status: $response"
+            sleep 30
+          done
+          
+          echo "Health check failed after 5 attempts"
+          
+          # 로그 확인
+          aws elasticbeanstalk describe-environments \
+            --environment-names ${{ env.EB_ENV_NAME }} \
+            --query 'Environments[0].Health' \
+            --output text
+          
+          # 최근 이벤트 확인
+          aws elasticbeanstalk describe-events \
+            --environment-name ${{ env.EB_ENV_NAME }} \
+            --max-items 10
+          
+          exit 1

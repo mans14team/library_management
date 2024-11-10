@@ -17,5 +17,26 @@
     }
   ],
   "Logging": "/var/log/eb-docker/containers/app",
-  "Memory": 512
+  "Memory": 512,
+  "Environment": [
+    {
+      "Name": "SPRING_PROFILES_ACTIVE",
+      "Value": "prod"
+    },
+    {
+      "Name": "SERVER_PORT",
+      "Value": "8080"
+    },
+    {
+      "Name": "JAVA_OPTS",
+      "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dserver.port=8080"
+    }
+  ],
+  "HealthCheck": {
+    "Command": "curl -f http://localhost:8080/actuator/health || exit 1",
+    "Interval": 30,
+    "Timeout": 5,
+    "Retries": 3,
+    "StartPeriod": 60
+  }
 }

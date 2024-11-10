@@ -12,5 +12,14 @@
   ],
   "Volumes": [],
   "Logging": "/var/log/nginx",
-  "Command": "java -Dserver.port=8080 -jar app.jar"
+  "Command": [
+    "java",
+    "-Dserver.port=8080",
+    "-Djava.security.egd=file:/dev/./urandom",
+    "-XX:+UseContainerSupport",
+    "-XX:MaxRAMPercentage=75.0",
+    "-Dspring.profiles.active=prod",
+    "-jar",
+    "app.jar"
+  ]
 }

@@ -11,5 +11,6 @@
     }
   ],
   "Volumes": [],
-  "Logging": "/var/log/nginx"
+  "Logging": "/var/log/nginx",
+  "Command": "java -Dserver.port=8080 -jar app.jar"
 }

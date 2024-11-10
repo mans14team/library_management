@@ -17,7 +17,7 @@
     }
   ],
   "Logging": "/var/log/eb-docker/containers/app",
-  "Memory": 512,
+  "Memory": 1024,
   "Environment": [
     {
       "Name": "SPRING_PROFILES_ACTIVE",

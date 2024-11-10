@@ -19,7 +19,11 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
 
 # JVM 옵션 설정
-ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx512m -Xms256m -XX:+UseG1GC"
 ENV TZ=Asia/Seoul
+
+# 헬스체크 추가
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

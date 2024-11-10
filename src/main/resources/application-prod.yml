@@ -52,11 +52,27 @@ logging:
 management:
   endpoints:
     web:
+      base-path: /actuator
       exposure:
-        include: health
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: db,redis
+        liveness:
+          include: ping
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
   security:
     enabled: false
 

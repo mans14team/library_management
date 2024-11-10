@@ -77,6 +77,25 @@ jobs:
           mkdir -p ~/.docker
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json
           
+          # 환경변수 파일 생성
+          cat > .ebextensions/03-environment.config << EOF
+          option_settings:
+            aws:elasticbeanstalk:application:environment:
+              DB_HOST: ${{ secrets.DB_HOST }}
+              DB_USERNAME: ${{ secrets.DB_USERNAME }}
+              DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+              REDIS_SENTINEL_NODES: ${{ secrets.REDIS_SENTINEL_NODES }}
+              REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+              JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+              OWNER_TOKEN: ${{ secrets.OWNER_TOKEN }}
+              TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+              TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
+              TOSS_SUCCESS_URL: ${{ secrets.TOSS_SUCCESS_URL }}
+              TOSS_FAIL_URL: ${{ secrets.TOSS_FAIL_URL }}
+              TOSS_BASE_URL: ${{ secrets.TOSS_BASE_URL }}
+              SPRING_PROFILES_ACTIVE: prod
+          EOF
+          
           # Dockerrun.aws.json 환경 변수 치환
           sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json
           sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" Dockerrun.aws.json
@@ -95,3 +114,14 @@ jobs:
           region: ${{ env.AWS_REGION }}
           deployment_package: deploy.zip
           wait_for_deployment: true
+
+      # 배포 후 헬스체크
+      - name: Health check
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 30
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }}/actuator/health || echo "failed")
+          if [ "$response" != "200" ]; then
+            echo "Health check failed with status: $response"
+            exit 1
+          fi

@@ -10,15 +10,12 @@
       "HostPort": 80
     }
   ],
-  "Logging": "/var/log/nginx",
-  "Environment": [
+  "Volumes": [
     {
-      "Name": "SPRING_PROFILES_ACTIVE",
-      "Value": "prod"
-    },
-    {
-      "Name": "SERVER_PORT",
-      "Value": "8080"
+      "HostDirectory": "/var/log/app",
+      "ContainerDirectory": "/app/logs"
     }
-  ]
+  ],
+  "Logging": "/var/log/eb-docker/containers/app",
+  "Memory": 512
 }

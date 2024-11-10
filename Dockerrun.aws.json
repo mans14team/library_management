@@ -6,27 +6,10 @@
   },
   "Ports": [
     {
-      "ContainerPort": "8080",
-      "HostPort": "80"
+      "ContainerPort": 8080,
+      "HostPort": 80
     }
   ],
   "Volumes": [],
-  "Logging": "/var/log/nginx",
-  "Memory": 512,
-  "Environment": [
-    {
-      "Name": "SPRING_PROFILES_ACTIVE",
-      "Value": "prod"
-    }
-  ],
-  "Authentication": {
-    "Bucket": "elasticbeanstalk-ap-northeast-2-354918378208",
-    "Key": "docker-config.json"
-  },
-  "HealthCheck": {
-    "Command": "curl -f http://localhost:8080/actuator/health || exit 1",
-    "Interval": "30",
-    "Timeout": "5",
-    "Retries": "3"
-  }
+  "Logging": "/var/log/nginx"
 }

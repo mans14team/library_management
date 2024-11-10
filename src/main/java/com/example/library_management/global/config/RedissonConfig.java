@@ -63,9 +63,19 @@ public class RedissonConfig {
         @Bean
         public RedissonClient redissonClient() {
             Config config = new Config();
+
+            String[] nodes = sentinelNodes.split(",");
+            String[] sentinelAddresses = new String[nodes.length];
+
+            // Sentinel 주소 형식 변경
+            for (int i = 0; i < nodes.length; i++) {
+                sentinelAddresses[i] = "redis://" + nodes[i].trim();
+            }
+
             config.useSentinelServers()
                     .setMasterName(master)
                     .setPassword(password)
+                    .setCheckSentinelsList(false)  // Sentinel 체크 비활성화
                     .setConnectTimeout(3000)
                     .setMasterConnectionMinimumIdleSize(1)
                     .setMasterConnectionPoolSize(2)
@@ -73,12 +83,8 @@ public class RedissonConfig {
                     .setSlaveConnectionPoolSize(2)
                     .setRetryAttempts(3)
                     .setRetryInterval(1500)
-                    .setTimeout(3000);
-
-            String[] nodes = sentinelNodes.split(",");
-            for (String node : nodes) {
-                config.useSentinelServers().addSentinelAddress("redis://" + node.trim());
-            }
+                    .setTimeout(3000)
+                    .addSentinelAddress(sentinelAddresses);
 
             return Redisson.create(config);
         }

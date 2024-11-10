@@ -9,11 +9,5 @@
       "ContainerPort": 8080,
       "HostPort": 80
     }
-  ],
-  "Logging": "/var/log/nginx",
-  "Command": [
-    "java",
-    "-jar",
-    "app.jar"
   ]
 }

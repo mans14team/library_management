@@ -81,6 +81,21 @@ jobs:
           EOF
 
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
+      - name: Clean up old versions
+        run: |
+          versions=$(aws elasticbeanstalk describe-application-versions \
+            --application-name ${{ env.EB_APP_NAME }} \
+            --query 'ApplicationVersions[*].VersionLabel' \
+            --output text)
+
+          for version in $versions; do
+            aws elasticbeanstalk delete-application-version \
+              --application-name ${{ env.EB_APP_NAME }} \
+              --version-label "$version" \
+              --delete-source-bundle \
+              --force-delete || true
+          done
+
       - name: Generate deployment package
         run: |
           # Docker config 생성

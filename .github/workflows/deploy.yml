@@ -25,6 +25,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -50,12 +57,14 @@ jobs:
 
       - name: Update environment variables
         run: |
-          # 환경 변수 설정을 00-settings.config에 추가
+          sed -i -e '/aws:elasticbeanstalk:application:environment:/,+1d' .ebextensions/00-settings.config
           cat >> .ebextensions/00-settings.config << EOF
 
           # 환경 변수 설정
           option_settings:
             aws:elasticbeanstalk:application:environment:
+              JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+              SERVER_PORT: "8080"
               SPRING_PROFILES_ACTIVE: prod
               DB_HOST: ${{ secrets.DB_HOST }}
               DB_USERNAME: ${{ secrets.DB_USERNAME }}
@@ -74,13 +83,6 @@ jobs:
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
       - name: Generate deployment package
         run: |
-          # 이전 배포 정리
-          aws elasticbeanstalk delete-application-version \
-            --application-name ${{ env.EB_APP_NAME }} \
-            --version-label 895267d7469dd4023deb93e00338f8ae4b3e0d5a \
-            --delete-source-bundle \
-            --force-delete || true
-          
           # Docker config 생성
           mkdir -p ~/.docker
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json

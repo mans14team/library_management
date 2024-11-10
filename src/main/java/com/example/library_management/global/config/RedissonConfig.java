@@ -76,7 +76,7 @@ public class RedissonConfig {
             config.useSentinelServers()
                     .setMasterName(master)
                     .setPassword(password)
-                    .setCheckSentinelsList(false)
+                    .setSentinelPassword(password)  // Sentinel 비밀번호 설정
                     .setConnectTimeout(10000)
                     .setMasterConnectionPoolSize(2)
                     .setSlaveConnectionPoolSize(2)

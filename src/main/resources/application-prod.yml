@@ -21,6 +21,7 @@ spring:
       sentinel:
         master: mymaster
         nodes: ${REDIS_SENTINEL_NODES}
+        password: ${REDIS_PASSWORD}
       password: ${REDIS_PASSWORD}
       timeout: 4000
       lettuce:

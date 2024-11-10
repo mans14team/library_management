@@ -22,7 +22,7 @@ spring:
         master: mymaster
         nodes: ${REDIS_SENTINEL_NODES}
       password: ${REDIS_PASSWORD}
-      timeout: 3000
+      timeout: 4000
       lettuce:
         pool:
           max-active: 8

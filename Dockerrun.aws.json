@@ -10,16 +10,16 @@
       "HostPort": 80
     }
   ],
-  "Volumes": [],
+  "Volumes": [
+    {
+      "HostDirectory": "/var/log/eb-docker",
+      "ContainerDirectory": "/var/log/app"
+    }
+  ],
   "Logging": "/var/log/nginx",
   "Command": [
-    "java",
-    "-Dserver.port=8080",
-    "-Djava.security.egd=file:/dev/./urandom",
-    "-XX:+UseContainerSupport",
-    "-XX:MaxRAMPercentage=75.0",
-    "-Dspring.profiles.active=prod",
-    "-jar",
-    "app.jar"
+    "sh",
+    "-c",
+    "java -Dserver.port=8080 -Dspring.profiles.active=prod -Dlogging.file.path=/var/log/app -Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar app.jar"
   ]
 }

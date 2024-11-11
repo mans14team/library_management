@@ -116,6 +116,19 @@ jobs:
                 echo "REDIS_SENTINEL_NODES is set: $(if [ ! -z "\$REDIS_SENTINEL_NODES" ]; then echo "yes"; else echo "no"; fi)"
           EOF
           
+          cat > .ebextensions/04-container-cleanup.config << EOF
+          container_commands:
+            01_stop_containers:
+              command: |
+                #!/bin/bash
+                # 실행 중인 모든 컨테이너 중지
+                docker stop \$(docker ps -a -q) || true
+                # 모든 컨테이너 제거
+                docker rm \$(docker ps -a -q) || true
+                # 사용하지 않는 이미지 제거
+                docker image prune -af
+          EOF
+          
           # Dockerrun.aws.json 환경 변수 치환
           sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json
           sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" Dockerrun.aws.json

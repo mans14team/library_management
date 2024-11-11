@@ -97,9 +97,8 @@ public class RedisConfig {
             String[] sentinelAddresses = new String[nodes.length];
 
             for (int i = 0; i < nodes.length; i++) {
-                String host = nodes[i].trim().split(":")[0];  // IP 주소만 추출
-                String port = nodes[i].trim().split(":")[1];  // 포트 번호만 추출
-                sentinelAddresses[i] = "redis://" + host + ":" + port;
+                String host = nodes[i].trim();  // IP 주소
+                sentinelAddresses[i] = "redis://" + host + ":26379";  // 포트는 26379로 고정
                 System.out.println("Adding sentinel address: " + sentinelAddresses[i]);
             }
 

@@ -81,6 +81,14 @@ jobs:
           sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json
           sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" Dockerrun.aws.json
           
+          # Docker 인증 정보를 EC2 인스턴스에도 전달
+          aws elasticbeanstalk update-environment \
+          --environment-name ${{ env.EB_ENV_NAME }} \
+          --option-settings "[
+          {\"Namespace\":\"aws:elasticbeanstalk:application:environment\",\"OptionName\":\"DOCKER_USERNAME\",\"Value\":\"${{ secrets.DOCKER_USERNAME }}\"},
+          {\"Namespace\":\"aws:elasticbeanstalk:application:environment\",\"OptionName\":\"DOCKER_PASSWORD\",\"Value\":\"${{ secrets.DOCKER_PASSWORD }}\"}
+          ]"
+          
           # 배포 패키지 생성
           zip -r deploy.zip Dockerrun.aws.json .ebextensions/* .elasticbeanstalk/* ~/.docker/config.json
 

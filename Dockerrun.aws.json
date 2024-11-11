@@ -24,10 +24,6 @@
       "Value": "prod"
     },
     {
-      "Name": "SERVER_PORT",
-      "Value": "8080"
-    },
-    {
       "Name": "JAVA_TOOL_OPTIONS",
       "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     }

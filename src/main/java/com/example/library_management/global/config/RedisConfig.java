@@ -1,5 +1,8 @@
 package com.example.library_management.global.config;
 
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +39,27 @@ public class RedisConfig {
 
             return new LettuceConnectionFactory(redisConfig);
         }
+
+        @Bean
+        public RedissonClient redissonClient() {
+            //redisson 설정을 정의하는데 사용
+            Config config = new Config();
+
+            // Redis 연결 설정
+            config.useSingleServer()
+                    .setAddress("redis://" + redisHost + ":" + redisPort)
+                    .setPassword(password)
+                    .setConnectionMinimumIdleSize(1)
+                    .setConnectionPoolSize(2)
+                    .setRetryAttempts(3)
+                    .setRetryInterval(1500)
+                    .setDnsMonitoringInterval(5000)
+                    .setSubscriptionConnectionMinimumIdleSize(1)
+                    .setSubscriptionConnectionPoolSize(2)
+                    .setTimeout(3000);
+
+            return Redisson.create(config);
+        }
     }
 
     // 운영 환경 설정
@@ -65,6 +89,40 @@ public class RedisConfig {
             sentinelConfig.setPassword(password);
 
             return new LettuceConnectionFactory(sentinelConfig);
+        }
+
+        @Bean
+        public RedissonClient redissonClient() {
+            Config config = new Config();
+            String[] nodes = sentinelNodes.split(",");
+            String[] sentinelAddresses = new String[nodes.length];
+
+            for (int i = 0; i < nodes.length; i++) {
+                String node = nodes[i].trim();
+                // IP:PORT 형식만 사용
+                String[] parts = node.split(":");
+                sentinelAddresses[i] = "redis://" + parts[0] + ":" + parts[1];
+                System.out.println("Adding sentinel address: " + sentinelAddresses[i]);
+            }
+
+            config.useSentinelServers()
+                    .setMasterName(master)
+                    .setPassword(password)
+                    .setSentinelPassword(password)
+                    .setDatabase(0)
+                    .setMasterConnectionMinimumIdleSize(1)
+                    .setMasterConnectionPoolSize(2)
+                    .setSlaveConnectionMinimumIdleSize(1)
+                    .setSlaveConnectionPoolSize(2)
+                    .setSubscriptionConnectionMinimumIdleSize(1)
+                    .setSubscriptionConnectionPoolSize(2)
+                    .setRetryAttempts(3)
+                    .setRetryInterval(1500)
+                    .setTimeout(3000)
+                    .setConnectTimeout(3000)
+                    .addSentinelAddress(sentinelAddresses);
+
+            return Redisson.create(config);
         }
     }
 

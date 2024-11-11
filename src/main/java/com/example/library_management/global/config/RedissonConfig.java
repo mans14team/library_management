@@ -67,12 +67,9 @@ public class RedissonConfig {
             String[] nodes = sentinelNodes.split(",");
             String[] sentinelAddresses = new String[nodes.length];
 
-            // Sentinel 주소 구성
+            // Sentinel 주소 형식 변경
             for (int i = 0; i < nodes.length; i++) {
-                String[] parts = nodes[i].trim().split(":");
-                String host = parts[0];
-                String port = parts.length > 1 ? parts[1] : "26379";
-                sentinelAddresses[i] = "redis://" + host + ":" + port;
+                sentinelAddresses[i] = "redis://" + nodes[i].trim();
 
                 // 디버깅용 로그
                 System.out.println("Configuring sentinel node: " + sentinelAddresses[i]);

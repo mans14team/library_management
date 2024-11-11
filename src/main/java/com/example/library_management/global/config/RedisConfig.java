@@ -96,10 +96,10 @@ public class RedisConfig {
             String[] nodes = sentinelNodes.split(",");
             String[] sentinelAddresses = new String[nodes.length];
 
-            // Sentinel 주소 형식 수정
             for (int i = 0; i < nodes.length; i++) {
-                String node = nodes[i].trim();
-                sentinelAddresses[i] = "redis://" + node;
+                String host = nodes[i].trim().split(":")[0];  // IP 주소만 추출
+                String port = nodes[i].trim().split(":")[1];  // 포트 번호만 추출
+                sentinelAddresses[i] = "redis://" + host + ":" + port;
                 System.out.println("Adding sentinel address: " + sentinelAddresses[i]);
             }
 

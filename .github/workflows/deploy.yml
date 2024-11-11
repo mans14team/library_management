@@ -25,13 +25,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -71,21 +64,40 @@ jobs:
               --force-delete || true
           done
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Generate deployment package
         run: |
           # Docker config 생성
           mkdir -p ~/.docker
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json
           
-          # 환경변수 파일 생성
+          # 환경변수 설정 파일 생성
           cat > .ebextensions/03-environment.config << EOF
+          files:
+            "/opt/elasticbeanstalk/hooks/appdeploy/pre/03_set_env.sh":
+              mode: "000755"
+              owner: root
+              group: root
+              content: |
+                #!/bin/bash
+                # Redis 환경변수 설정
+                echo "export REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'" >> /opt/elasticbeanstalk/deployment/env
+                echo "export REDIS_SENTINEL_NODES='${{ secrets.REDIS_SENTINEL_NODES }}'" >> /opt/elasticbeanstalk/deployment/env
+                source /opt/elasticbeanstalk/deployment/env
+          
           option_settings:
             aws:elasticbeanstalk:application:environment:
+              REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+              REDIS_SENTINEL_NODES: ${{ secrets.REDIS_SENTINEL_NODES }}
               DB_HOST: ${{ secrets.DB_HOST }}
               DB_USERNAME: ${{ secrets.DB_USERNAME }}
               DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-              REDIS_SENTINEL_NODES: ${{ secrets.REDIS_SENTINEL_NODES }}
-              REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
               JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
               OWNER_TOKEN: ${{ secrets.OWNER_TOKEN }}
               TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
@@ -94,6 +106,14 @@ jobs:
               TOSS_FAIL_URL: ${{ secrets.TOSS_FAIL_URL }}
               TOSS_BASE_URL: ${{ secrets.TOSS_BASE_URL }}
               SPRING_PROFILES_ACTIVE: prod
+          
+          container_commands:
+            01_verify_env:
+              command: |
+                echo "Verifying environment variables..."
+                source /opt/elasticbeanstalk/deployment/env
+                echo "REDIS_PASSWORD is set: $(if [ ! -z "\$REDIS_PASSWORD" ]; then echo "yes"; else echo "no"; fi)"
+                echo "REDIS_SENTINEL_NODES is set: $(if [ ! -z "\$REDIS_SENTINEL_NODES" ]; then echo "yes"; else echo "no"; fi)"
           EOF
           
           # Dockerrun.aws.json 환경 변수 치환

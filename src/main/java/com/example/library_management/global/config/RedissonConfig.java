@@ -60,38 +60,44 @@ public class RedissonConfig {
         @Value("${spring.data.redis.password}")
         private String password;
 
-        @Bean
+        @Bean(destroyMethod = "shutdown")
         public RedissonClient redissonClient() {
             Config config = new Config();
 
             String[] nodes = sentinelNodes.split(",");
             String[] sentinelAddresses = new String[nodes.length];
 
+            // Sentinel 주소 구성
             for (int i = 0; i < nodes.length; i++) {
-                // 명시적으로 Sentinel 포트(26379) 추가
-                sentinelAddresses[i] = "redis://" + nodes[i].trim() + ":26379";
-                System.out.println("Adding sentinel address: " + sentinelAddresses[i]);  // 디버깅용 로그
+                String[] parts = nodes[i].trim().split(":");
+                String host = parts[0];
+                String port = parts.length > 1 ? parts[1] : "26379";
+                sentinelAddresses[i] = "redis://" + host + ":" + port;
+
+                // 디버깅용 로그
+                System.out.println("Configuring sentinel node: " + sentinelAddresses[i]);
             }
 
+            // Redis 설정
             config.useSentinelServers()
                     .setMasterName(master)
                     .setPassword(password)
-                    .setSentinelPassword(password)  // Sentinel 비밀번호 설정
-                    .setConnectTimeout(10000)
-                    .setMasterConnectionPoolSize(2)
-                    .setSlaveConnectionPoolSize(2)
+                    .setSentinelPassword(password)
                     .setDatabase(0)
                     .setMasterConnectionMinimumIdleSize(1)
+                    .setMasterConnectionPoolSize(2)
                     .setSlaveConnectionMinimumIdleSize(1)
+                    .setSlaveConnectionPoolSize(2)
                     .setSubscriptionConnectionMinimumIdleSize(1)
                     .setSubscriptionConnectionPoolSize(2)
-                    .setDnsMonitoringInterval(5000)
-                    .setFailedSlaveReconnectionInterval(3000)
-                    .setFailedSlaveCheckInterval(60000)
                     .setRetryAttempts(5)
                     .setRetryInterval(3000)
+                    .setDnsMonitoringInterval(30000)
+                    .setFailedSlaveReconnectionInterval(3000)
+                    .setFailedSlaveCheckInterval(60000)
                     .setTimeout(10000)
-                    .setLoadBalancer(new org.redisson.connection.balancer.RoundRobinLoadBalancer())
+                    .setConnectTimeout(10000)
+                    .setCheckSentinelsList(false)
                     .addSentinelAddress(sentinelAddresses);
 
             return Redisson.create(config);

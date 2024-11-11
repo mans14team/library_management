@@ -97,11 +97,10 @@ public class RedisConfig {
             String[] nodes = sentinelNodes.split(",");
             String[] sentinelAddresses = new String[nodes.length];
 
+            // Sentinel 주소 형식 수정
             for (int i = 0; i < nodes.length; i++) {
                 String node = nodes[i].trim();
-                // IP:PORT 형식만 사용
-                String[] parts = node.split(":");
-                sentinelAddresses[i] = "redis://" + parts[0] + ":" + parts[1];
+                sentinelAddresses[i] = "redis://" + node;
                 System.out.println("Adding sentinel address: " + sentinelAddresses[i]);
             }
 
@@ -120,6 +119,8 @@ public class RedisConfig {
                     .setRetryInterval(1500)
                     .setTimeout(3000)
                     .setConnectTimeout(3000)
+                    .setCheckSentinelsList(false)  // Sentinel 노드 체크 비활성화
+                    .setDnsMonitoringInterval(5000)
                     .addSentinelAddress(sentinelAddresses);
 
             return Redisson.create(config);

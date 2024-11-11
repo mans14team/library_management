@@ -28,8 +28,8 @@
       "Value": "8080"
     },
     {
-      "Name": "JAVA_OPTS",
-      "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dserver.port=8080"
+      "Name": "JAVA_TOOL_OPTIONS",
+      "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     }
   ],
   "HealthCheck": {

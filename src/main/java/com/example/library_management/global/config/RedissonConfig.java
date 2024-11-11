@@ -69,10 +69,10 @@ public class RedissonConfig {
 
             // Sentinel 주소 형식 변경
             for (int i = 0; i < nodes.length; i++) {
-                sentinelAddresses[i] = "redis://" + nodes[i].trim();
-
-                // 디버깅용 로그
-                System.out.println("Configuring sentinel node: " + sentinelAddresses[i]);
+                // ":" 뒤에 추가 포트 번호가 있는 경우 제거
+                String node = nodes[i].trim().split(":")[0] + ":" + nodes[i].trim().split(":")[1];
+                sentinelAddresses[i] = "redis://" + node;
+                System.out.println("Adding sentinel address: " + sentinelAddresses[i]);
             }
 
             // Redis 설정
@@ -87,14 +87,13 @@ public class RedissonConfig {
                     .setSlaveConnectionPoolSize(2)
                     .setSubscriptionConnectionMinimumIdleSize(1)
                     .setSubscriptionConnectionPoolSize(2)
-                    .setRetryAttempts(5)
-                    .setRetryInterval(3000)
-                    .setDnsMonitoringInterval(30000)
+                    .setRetryAttempts(3)
+                    .setRetryInterval(1500)
+                    .setDnsMonitoringInterval(5000)
                     .setFailedSlaveReconnectionInterval(3000)
                     .setFailedSlaveCheckInterval(60000)
-                    .setTimeout(10000)
-                    .setConnectTimeout(10000)
-                    .setCheckSentinelsList(false)
+                    .setTimeout(3000)
+                    .setConnectTimeout(3000)
                     .addSentinelAddress(sentinelAddresses);
 
             return Redisson.create(config);

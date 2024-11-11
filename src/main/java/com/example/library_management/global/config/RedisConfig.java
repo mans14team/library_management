@@ -90,7 +90,6 @@ public class RedisConfig {
 
             return new LettuceConnectionFactory(sentinelConfig);
         }
-
         @Bean
         public RedissonClient redissonClient() {
             Config config = new Config();

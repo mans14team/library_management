@@ -31,12 +31,5 @@
       "Name": "JAVA_TOOL_OPTIONS",
       "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     }
-  ],
-  "HealthCheck": {
-    "Command": "curl -f http://localhost:8080/actuator/health || exit 1",
-    "Interval": 15,
-    "Timeout": 5,
-    "Retries": 3,
-    "StartPeriod": 60
-  }
+  ]
 }

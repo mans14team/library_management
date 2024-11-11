@@ -86,47 +86,71 @@ jobs:
               group: root
               content: |
                 #!/bin/bash
-                # Redis 환경변수 설정
-                echo "export REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'" >> /opt/elasticbeanstalk/deployment/env
-                echo "export REDIS_SENTINEL_NODES='${{ secrets.REDIS_SENTINEL_NODES }}'" >> /opt/elasticbeanstalk/deployment/env
-                source /opt/elasticbeanstalk/deployment/env
+                # 환경변수 파일 생성
+                ENV_FILE="/opt/elasticbeanstalk/deployment/env"
           
-          option_settings:
-            aws:elasticbeanstalk:application:environment:
-              REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-              REDIS_SENTINEL_NODES: ${{ secrets.REDIS_SENTINEL_NODES }}
-              DB_HOST: ${{ secrets.DB_HOST }}
-              DB_USERNAME: ${{ secrets.DB_USERNAME }}
-              DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-              JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-              OWNER_TOKEN: ${{ secrets.OWNER_TOKEN }}
-              TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
-              TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
-              TOSS_SUCCESS_URL: ${{ secrets.TOSS_SUCCESS_URL }}
-              TOSS_FAIL_URL: ${{ secrets.TOSS_FAIL_URL }}
-              TOSS_BASE_URL: ${{ secrets.TOSS_BASE_URL }}
-              SPRING_PROFILES_ACTIVE: prod
+                # 기존 파일 백업
+                [ -f "$ENV_FILE" ] && cp "$ENV_FILE" "${ENV_FILE}.bak"
+          
+                # 새 환경변수 설정
+                cat > "$ENV_FILE" << EOL
+                export REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'
+                export REDIS_SENTINEL_NODES='${{ secrets.REDIS_SENTINEL_NODES }}'
+                export DB_HOST='${{ secrets.DB_HOST }}'
+                export DB_USERNAME='${{ secrets.DB_USERNAME }}'
+                export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+                export JWT_SECRET_KEY='${{ secrets.JWT_SECRET_KEY }}'
+                export OWNER_TOKEN='${{ secrets.OWNER_TOKEN }}'
+                export TOSS_SECRET_KEY='${{ secrets.TOSS_SECRET_KEY }}'
+                export TOSS_CLIENT_KEY='${{ secrets.TOSS_CLIENT_KEY }}'
+                export TOSS_SUCCESS_URL='${{ secrets.TOSS_SUCCESS_URL }}'
+                export TOSS_FAIL_URL='${{ secrets.TOSS_FAIL_URL }}'
+                export TOSS_BASE_URL='${{ secrets.TOSS_BASE_URL }}'
+                export SPRING_PROFILES_ACTIVE=prod
+                EOL
+          
+                # 권한 설정
+                chmod 600 "$ENV_FILE"
+          
+                # 환경변수 로드
+                source "$ENV_FILE"
           
           container_commands:
             01_verify_env:
               command: |
-                echo "Verifying environment variables..."
-                source /opt/elasticbeanstalk/deployment/env
-                echo "REDIS_PASSWORD is set: $(if [ ! -z "\$REDIS_PASSWORD" ]; then echo "yes"; else echo "no"; fi)"
-                echo "REDIS_SENTINEL_NODES is set: $(if [ ! -z "\$REDIS_SENTINEL_NODES" ]; then echo "yes"; else echo "no"; fi)"
-          EOF
-          
-          cat > .ebextensions/04-container-cleanup.config << EOF
-          container_commands:
-            01_stop_containers:
-              command: |
-                #!/bin/bash
-                # 실행 중인 모든 컨테이너 중지
-                docker stop \$(docker ps -a -q) || true
-                # 모든 컨테이너 제거
-                docker rm \$(docker ps -a -q) || true
-                # 사용하지 않는 이미지 제거
-                docker image prune -af
+                echo "Verifying deployment environment..."
+                if [ ! -f /opt/elasticbeanstalk/deployment/env ]; then
+                  echo "Environment file not found!"
+                  exit 1
+                fi
+                
+                required_vars=(
+                  "REDIS_PASSWORD"
+                  "REDIS_SENTINEL_NODES"
+                  "DB_HOST"
+                  "DB_USERNAME"
+                  "DB_PASSWORD"
+                  "JWT_SECRET_KEY"
+                  "OWNER_TOKEN"
+                  "TOSS_SECRET_KEY"
+                  "TOSS_CLIENT_KEY"
+                  "TOSS_SUCCESS_URL"
+                  "TOSS_FAIL_URL"
+                  "TOSS_BASE_URL"
+                )
+                
+                missing_vars=0
+                for var in "\${required_vars[@]}"; do
+                  if [ -z "\${!var}" ]; then
+                    echo "Error: $var is not set"
+                    missing_vars=$((missing_vars + 1))
+                  fi
+                done
+                
+                if [ $missing_vars -gt 0 ]; then
+                  echo "Missing $missing_vars required environment variables"
+                  exit 1
+                fi
           EOF
           
           # Dockerrun.aws.json 환경 변수 치환

@@ -4,10 +4,6 @@
     "Name": "${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}",
     "Update": "true"
   },
-  "Authentication": {
-    "Bucket": "elasticbeanstalk-ap-northeast-2-xxxxxxxxxxxx",
-    "Key": "docker/.dockercfg"
-  },
   "Ports": [
     {
       "ContainerPort": 8080,

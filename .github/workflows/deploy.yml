@@ -53,7 +53,11 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/spring-app:latest
+          cache-to: type=inline
 
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
       - name: Clean up old versions
@@ -71,6 +75,29 @@ jobs:
               --force-delete || true
           done
 
+      - name: Update Elastic Beanstalk environment
+        run: |
+          # 환경 변수 업데이트
+          aws elasticbeanstalk update-environment \
+            --environment-name ${{ env.EB_ENV_NAME }} \
+            --option-settings "[
+              {
+                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
+                \"OptionName\": \"DOCKER_USERNAME\",
+                \"Value\": \"${{ secrets.DOCKER_USERNAME }}\"
+              },
+              {
+                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
+                \"OptionName\": \"DOCKER_PASSWORD\",
+                \"Value\": \"${{ secrets.DOCKER_PASSWORD }}\"
+              },
+              {
+                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
+                \"OptionName\": \"IMAGE_TAG\",
+                \"Value\": \"${{ github.sha }}\"
+              }
+            ]"
+
       - name: Generate deployment package
         run: |
           # Docker config 생성
@@ -81,16 +108,11 @@ jobs:
           sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json
           sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" Dockerrun.aws.json
           
-          # Docker 인증 정보를 EC2 인스턴스에도 전달
-          aws elasticbeanstalk update-environment \
-          --environment-name ${{ env.EB_ENV_NAME }} \
-          --option-settings "[
-          {\"Namespace\":\"aws:elasticbeanstalk:application:environment\",\"OptionName\":\"DOCKER_USERNAME\",\"Value\":\"${{ secrets.DOCKER_USERNAME }}\"},
-          {\"Namespace\":\"aws:elasticbeanstalk:application:environment\",\"OptionName\":\"DOCKER_PASSWORD\",\"Value\":\"${{ secrets.DOCKER_PASSWORD }}\"}
-          ]"
-          
           # 배포 패키지 생성
           zip -r deploy.zip Dockerrun.aws.json .ebextensions/* .elasticbeanstalk/* ~/.docker/config.json
+          
+          # 배포 패키지 내용 확인
+          unzip -l deploy.zip
 
       - name: Check environment status
         run: |

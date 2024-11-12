@@ -97,6 +97,10 @@ jobs:
                 \"Value\": \"${{ github.sha }}\"
               }
             ]"
+          
+          # 환경 변수가 적용될 때까지 대기
+          echo "Waiting for environment update..."
+          sleep 30
 
       - name: Generate deployment package
         run: |

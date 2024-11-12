@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}",
+    "Name": "${DOCKER_USERNAME}/spring-app:latest",
     "Update": "true"
   },
   "Ports": [
@@ -17,15 +17,5 @@
     }
   ],
   "Logging": "/var/log/eb-docker/containers/app",
-  "Memory": 1024,
-  "Environment": [
-    {
-      "Name": "SPRING_PROFILES_ACTIVE",
-      "Value": "prod"
-    },
-    {
-      "Name": "JAVA_TOOL_OPTIONS",
-      "Value": "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
-    }
-  ]
+  "Memory": 1024
 }

@@ -79,30 +79,66 @@ jobs:
 
       - name: Update Elastic Beanstalk environment
         run: |
+          # 환경 변수 설정을 파일로 생성
+          cat > eb-env-settings.json << EOF
+          [
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "DOCKER_USERNAME",
+              "Value": "${{ secrets.DOCKER_USERNAME }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "DOCKER_PASSWORD",
+              "Value": "${{ secrets.DOCKER_PASSWORD }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "IMAGE_TAG",
+              "Value": "${{ github.sha }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "SPRING_PROFILES_ACTIVE",
+              "Value": "prod"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "DB_HOST",
+              "Value": "${{ secrets.DB_HOST }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "DB_USERNAME",
+              "Value": "${{ secrets.DB_USERNAME }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "DB_PASSWORD",
+              "Value": "${{ secrets.DB_PASSWORD }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "REDIS_HOST",
+              "Value": "${{ secrets.REDIS_HOST }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "REDIS_PASSWORD",
+              "Value": "${{ secrets.REDIS_PASSWORD }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "JWT_SECRET_KEY",
+              "Value": "${{ secrets.JWT_SECRET_KEY }}"
+            }
+          ]
+          EOF
+      
           # 환경 변수 업데이트
           aws elasticbeanstalk update-environment \
-            --environment-name ${{ env.EB_ENV_NAME }} \
-            --option-settings "[
-              {
-                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
-                \"OptionName\": \"DOCKER_USERNAME\",
-                \"Value\": \"${{ secrets.DOCKER_USERNAME }}\"
-              },
-              {
-                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
-                \"OptionName\": \"DOCKER_PASSWORD\",
-                \"Value\": \"${{ secrets.DOCKER_PASSWORD }}\"
-              },
-              {
-                \"Namespace\": \"aws:elasticbeanstalk:application:environment\",
-                \"OptionName\": \"IMAGE_TAG\",
-                \"Value\": \"${{ github.sha }}\"
-              }
-            ]"
-          
-          # 환경 변수가 적용될 때까지 대기
-          echo "Waiting for environment update..."
-          sleep 30
+          --environment-name ${{ env.EB_ENV_NAME }} \
+          --option-settings file://eb-env-settings.json
 
       - name: Generate deployment package
         run: |

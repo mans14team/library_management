@@ -15,6 +15,10 @@ RUN apt-get update && \
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
+# 로그 디렉토리 생성
+RUN mkdir -p /app/logs && \
+    chmod 777 /app/logs
+
 # 포트 설정 추가
 EXPOSE 8080
 

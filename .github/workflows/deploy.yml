@@ -77,9 +77,9 @@ jobs:
           mkdir -p ~/.docker
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json
           
-          # 이미지 이름 설정 (원격 이미지)
-          SOURCE_IMAGE="${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}"
-          echo "Source image: $SOURCE_IMAGE"
+          # Dockerrun.aws.json 환경 변수 치환
+          sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json
+          sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" Dockerrun.aws.json
           
           # Docker 인증 정보를 EC2 인스턴스에도 전달
           aws elasticbeanstalk update-environment \

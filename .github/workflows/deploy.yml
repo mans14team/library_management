@@ -101,6 +101,12 @@ jobs:
           # 환경 변수가 적용될 때까지 대기
           echo "Waiting for environment update..."
           sleep 30
+          
+          # 환경 변수 설정 확인
+          aws elasticbeanstalk describe-configuration-settings \
+            --environment-name ${{ env.EB_ENV_NAME }} \
+            --application-name ${{ env.EB_APP_NAME }} \
+            --query "ConfigurationSettings[0].OptionSettings[?Namespace=='aws:elasticbeanstalk:application:environment']"
 
       - name: Generate deployment package
         run: |

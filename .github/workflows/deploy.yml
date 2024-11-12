@@ -131,6 +131,36 @@ jobs:
               "Namespace": "aws:elasticbeanstalk:application:environment",
               "OptionName": "JWT_SECRET_KEY",
               "Value": "${{ secrets.JWT_SECRET_KEY }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "OWNER_TOKEN",
+              "Value": "${{ secrets.OWNER_TOKEN }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "TOSS_SECRET_KEY",
+              "Value": "${{ secrets.TOSS_SECRET_KEY }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "TOSS_CLIENT_KEY",
+              "Value": "${{ secrets.TOSS_CLIENT_KEY }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "TOSS_SUCCESS_URL",
+              "Value": "${{ secrets.TOSS_SUCCESS_URL }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "TOSS_FAIL_URL",
+              "Value": "${{ secrets.TOSS_FAIL_URL }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "TOSS_BASE_URL",
+              "Value": "${{ secrets.TOSS_BASE_URL }}"
             }
           ]
           EOF

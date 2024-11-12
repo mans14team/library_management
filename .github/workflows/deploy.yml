@@ -62,10 +62,12 @@ jobs:
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
       - name: Clean up old versions
         run: |
+          # 최신 5개 버전만 유지
           versions=$(aws elasticbeanstalk describe-application-versions \
             --application-name ${{ env.EB_APP_NAME }} \
-            --query 'ApplicationVersions[*].VersionLabel' \
-            --output text)
+            --max-items 100 \
+            --query 'ApplicationVersions[*].[VersionLabel,DateUpdated]' \
+            --output text | sort -k2 -r | tail -n +6 | cut -f1)
 
           for version in $versions; do
             aws elasticbeanstalk delete-application-version \
@@ -101,18 +103,13 @@ jobs:
           # 환경 변수가 적용될 때까지 대기
           echo "Waiting for environment update..."
           sleep 30
-          
-          # 환경 변수 설정 확인
-          aws elasticbeanstalk describe-configuration-settings \
-            --environment-name ${{ env.EB_ENV_NAME }} \
-            --application-name ${{ env.EB_APP_NAME }} \
-            --query "ConfigurationSettings[0].OptionSettings[?Namespace=='aws:elasticbeanstalk:application:environment']"
 
       - name: Generate deployment package
         run: |
           # Docker config 생성
           mkdir -p ~/.docker
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json
+          chmod 600 ~/.docker/config.json
           
           # Dockerrun.aws.json 환경 변수 치환
           sed -i "s|\${DOCKER_USERNAME}|${{ secrets.DOCKER_USERNAME }}|g" Dockerrun.aws.json

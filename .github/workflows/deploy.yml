@@ -58,7 +58,7 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/spring-app:latest
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/spring-app:latest,mode=max
+          cache-to: type=inline
           provenance: false  # 불필요한 메타데이터 생성 방지
 
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경

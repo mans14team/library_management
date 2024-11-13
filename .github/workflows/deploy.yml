@@ -175,10 +175,14 @@ jobs:
 
       - name: Generate deployment package
         run: |
-          # Docker config 생성
-          mkdir -p ~/.docker
-          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > ~/.docker/config.json
-          chmod 600 ~/.docker/config.json
+          # 임시 디렉토리 생성
+          TEMP_DIR=$(mktemp -d)
+          cd $TEMP_DIR
+          
+          # Docker 설정 파일 생성
+          mkdir -p .docker
+          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > .docker/config.json
+          chmod 600 .docker/config.json
           
           # Dockerrun.aws.json 생성
           cat > Dockerrun.aws.json << EOF
@@ -205,12 +209,19 @@ jobs:
           }
           EOF
           
+          # 필요한 파일들 복사
+          cp -r $GITHUB_WORKSPACE/.ebextensions .
+          cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .
+          
           # 배포 패키지 생성
-          zip -r deploy.zip Dockerrun.aws.json .ebextensions/* .elasticbeanstalk/* ~/.docker/config.json
+          zip -r $GITHUB_WORKSPACE/deploy.zip Dockerrun.aws.json .ebextensions/* .elasticbeanstalk/* .docker/config.json
+          
+          # 임시 디렉토리 정리
+          cd $GITHUB_WORKSPACE
+          rm -rf $TEMP_DIR
           
           # 배포 패키지 내용 확인
           unzip -l deploy.zip
-
       - name: Check environment status
         run: |
           max_attempts=30

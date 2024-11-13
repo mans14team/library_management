@@ -222,31 +222,31 @@ jobs:
           
           # 배포 패키지 내용 확인
           unzip -l deploy.zip
-      - name: Check environment status
-        run: |
-          max_attempts=30
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            status=$(aws elasticbeanstalk describe-environments \
-              --environment-names ${{ env.EB_ENV_NAME }} \
-              --query 'Environments[0].Status' \
-              --output text)
-          
-            if [ "$status" = "Ready" ]; then
-              echo "Environment is ready for deployment"
-              break
-            fi
-          
-            echo "Environment status is $status. Waiting... (Attempt $attempt/$max_attempts)"
-            sleep 30
-            attempt=$((attempt + 1))
-          done
-          
-          if [ $attempt -gt $max_attempts ]; then
-            echo "Environment did not become ready within the timeout period"
-            exit 1
-          fi
+#      - name: Check environment status
+#        run: |
+#          max_attempts=30
+#          attempt=1
+#
+#          while [ $attempt -le $max_attempts ]; do
+#            status=$(aws elasticbeanstalk describe-environments \
+#              --environment-names ${{ env.EB_ENV_NAME }} \
+#              --query 'Environments[0].Status' \
+#              --output text)
+#
+#            if [ "$status" = "Ready" ]; then
+#              echo "Environment is ready for deployment"
+#              break
+#            fi
+#
+#            echo "Environment status is $status. Waiting... (Attempt $attempt/$max_attempts)"
+#            sleep 30
+#            attempt=$((attempt + 1))
+#          done
+#
+#          if [ $attempt -gt $max_attempts ]; then
+#            echo "Environment did not become ready within the timeout period"
+#            exit 1
+#          fi
 
       - name: Deploy to AWS Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v21

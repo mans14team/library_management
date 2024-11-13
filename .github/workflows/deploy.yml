@@ -180,14 +180,17 @@ jobs:
           # 필요한 파일들 복사
           cp -r $GITHUB_WORKSPACE/.ebextensions .
           cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .
+          cp -r $GITHUB_WORKSPACE/Dockerrun.aws.json . 
+          cp -r $GITHUB_WORKSPACE/Dockerfile .         
           
           # 배포 패키지 생성
           zip -r $GITHUB_WORKSPACE/deploy.zip \
             Dockerrun.aws.json \
+            Dockerfile \
             .ebextensions/* \
             .elasticbeanstalk/* \
             .docker/config.json \
-            ebconfig.json
+            eb-env-settings.json
           
           # 임시 디렉토리 정리
           cd $GITHUB_WORKSPACE

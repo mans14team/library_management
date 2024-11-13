@@ -5,8 +5,8 @@ on:
     branches: [ feature/ci_cd ]
 
 env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  IMAGE_TAG: ${{ github.sha }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   EB_APP_NAME: library_management
   EB_ENV_NAME: Librarymanagement-env
   AWS_REGION: ap-northeast-2
@@ -32,6 +32,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -42,12 +46,6 @@ jobs:
       - name: Set up Docker Buildx    # Docker 빌드 도구 설정
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub     # Docker Hub 로그인
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}    # Docker Hub Access Token
-
       - name: Build and push Spring Boot image    # Spring Boot 이미지 빌드 및 푸시
         uses: docker/build-push-action@v5
         with:
@@ -56,10 +54,10 @@ jobs:
           outputs: type=registry  # 로컬에 이미지를 생성하지 않고 레지스트리로만 출력
           load: false  # 로컬에 이미지를 로드하지 않음
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/spring-app:latest
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/spring-app:latest,mode=max
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-to: type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest,mode=max
           provenance: false  # 불필요한 메타데이터 생성 방지
 
       # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
@@ -86,22 +84,13 @@ jobs:
           TEMP_DIR=$(mktemp -d)
           cd $TEMP_DIR
           
-          # Docker 설정 파일 생성
-          mkdir -p .docker
-          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > .docker/config.json
-          chmod 600 .docker/config.json
-          
-          # Dockerrun.aws.json 생성 - 실제 커밋 SHA로 치환
+          # Dockerrun.aws.json 생성
           cat > Dockerrun.aws.json << EOF
           {
             "AWSEBDockerrunVersion": "1",
             "Image": {
-              "Name": "anlee20/spring-app:${{ github.sha }}",
+              "Name": "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}",
               "Update": "true"
-            },
-            "Authentication": {
-              "Bucket": "",
-              "Key": ".docker/config.json"
             },
             "Ports": [
               {
@@ -125,18 +114,13 @@ jobs:
           [
             {
               "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "DOCKER_USERNAME",
-              "Value": "${{ secrets.DOCKER_USERNAME }}"
+              "OptionName": "ECR_REGISTRY",
+              "Value": "${{ env.ECR_REGISTRY }}"
             },
             {
               "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "DOCKER_PASSWORD",
-              "Value": "${{ secrets.DOCKER_PASSWORD }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "IMAGE_TAG",
-              "Value": "${{ github.sha }}"
+              "OptionName": "ECR_REPOSITORY",
+              "Value": "${{ env.ECR_REPOSITORY }}"
             },
             {
               "Namespace": "aws:elasticbeanstalk:application:environment",

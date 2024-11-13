@@ -22,6 +22,9 @@ RUN mkdir -p /app/logs && \
 # 포트 설정 추가
 EXPOSE 8080
 
+# 볼륨 설정
+VOLUME ["/app/logs"]
+
 # JVM 옵션 설정
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx512m -Xms256m -XX:+UseG1GC"
 ENV TZ=Asia/Seoul

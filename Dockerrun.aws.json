@@ -2,7 +2,7 @@
   "AWSEBDockerrunVersion": "1",
   "Image": {
     "Name": "${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}",
-    "Update": "true"
+    "Update": "false"
   },
   "Ports": [
     {

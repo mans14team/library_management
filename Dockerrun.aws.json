@@ -2,7 +2,7 @@
   "AWSEBDockerrunVersion": "1",
   "Image": {
     "Name": "anlee20/spring-app:latest",
-    "Update": "false"
+    "Update": "true"
   },
   "Ports": [
     {

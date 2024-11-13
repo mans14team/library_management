@@ -31,4 +31,11 @@ public interface RoomReserveRepository extends JpaRepository<RoomReserve, Long> 
     @Query("select r from RoomReserve r join  fetch  r.user join fetch r.room " +
             "where r.reservationDateEnd between :rsDate_Start and :rsDate_End ")
     List<RoomReserve> findReservation(@Param("rsDate_Start") LocalDateTime startDate, @Param("rsDate_End") LocalDateTime endDate);
+
+    // 예약 종료 시간이 현재 시간보다 이전인 예약 목록 조회
+//    @Query("SELECT r FROM RoomReserve r WHERE r.reservationDateEnd < :now")
+//    List<RoomReserve> findExpiredReservations(@Param("now") LocalDateTime now);
+
+    @Query("SELECT rr FROM RoomReserve rr JOIN FETCH rr.user JOIN FETCH rr.room WHERE rr.reservationDateEnd < :now")
+    List<RoomReserve> findExpiredReservations(@Param("now") LocalDateTime now);
 }

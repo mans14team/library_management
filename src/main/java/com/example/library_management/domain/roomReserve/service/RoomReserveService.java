@@ -64,7 +64,7 @@ public class RoomReserveService {
     @Transactional
     public RoomReserveCreateResponseDto createRoomReserve(User user, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         // 요청자 권한 확인    - 멤버쉽 권한 만이 스터디룸 예약을 할 수 있다.
-        validateUserMembership(user);
+        //validateUserMembership(user);
 
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
@@ -100,7 +100,7 @@ public class RoomReserveService {
     public RoomReserveUpdateResponseDto updateRoomReserve(User user, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
         // 요청자 권한 확인    - 해당 스터디룸 예약을 했던 유저만이 스터디룸 예약을 수정 할 수 있다.
         // 중복 뜨는건, 추후 AOP 고려
-        validateUserMembership(user);
+        //validateUserMembership(user);
 
         // 요청 날짜 확인
         LocalDateTime now = LocalDateTime.now();
@@ -156,7 +156,7 @@ public class RoomReserveService {
     @Transactional
     public RoomReserveDeleteResponseDto deleteRoomReserve(User user, Long roomId, Long reserveId) {
         // 요청자 권한 확인 - 멤버쉽 권한이 아니면 예외처리.
-        validateUserMembership(user);
+        //validateUserMembership(user);
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);

@@ -91,6 +91,35 @@ jobs:
           echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > .docker/config.json
           chmod 600 .docker/config.json
           
+          # Dockerrun.aws.json 생성 - 실제 커밋 SHA로 치환
+          cat > Dockerrun.aws.json << EOF
+          {
+            "AWSEBDockerrunVersion": "1",
+            "Image": {
+              "Name": "anlee20/spring-app:${{ github.sha }}",
+              "Update": "true"
+            },
+            "Authentication": {
+              "Bucket": "",
+              "Key": ".docker/config.json"
+            },
+            "Ports": [
+              {
+                "ContainerPort": 8080,
+                "HostPort": 8080
+              }
+            ],
+            "Volumes": [
+              {
+                "HostDirectory": "/var/log/eb-docker/containers/app",
+                "ContainerDirectory": "/app/logs"
+              }
+            ],
+            "Logging": "/var/log/eb-docker/containers/app",
+            "Memory": 512
+          }
+          EOF
+          
           # 환경 변수 설정을 파일로 생성
           cat > eb-env-settings.json << EOF
           [
@@ -179,15 +208,13 @@ jobs:
           
           # 필요한 파일들 복사
           cp -r $GITHUB_WORKSPACE/.ebextensions .
-          cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .
-          cp -r $GITHUB_WORKSPACE/Dockerrun.aws.json .      
+          cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .  
           
           # 배포 패키지 생성
           zip -r $GITHUB_WORKSPACE/deploy.zip \
             Dockerrun.aws.json \
             .ebextensions/* \
             .elasticbeanstalk/* \
-            .docker/config.json \
             eb-env-settings.json
           
           # 임시 디렉토리 정리

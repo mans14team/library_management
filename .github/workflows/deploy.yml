@@ -80,8 +80,17 @@ jobs:
               --force-delete || true
           done
 
-      - name: Update Elastic Beanstalk environment
+      - name: Generate deployment package
         run: |
+          # 임시 디렉토리 생성
+          TEMP_DIR=$(mktemp -d)
+          cd $TEMP_DIR
+          
+          # Docker 설정 파일 생성
+          mkdir -p .docker
+          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > .docker/config.json
+          chmod 600 .docker/config.json
+          
           # 환경 변수 설정을 파일로 생성
           cat > eb-env-settings.json << EOF
           [
@@ -167,22 +176,6 @@ jobs:
             }
           ]
           EOF
-      
-          # 환경 변수 업데이트
-          aws elasticbeanstalk update-environment \
-          --environment-name ${{ env.EB_ENV_NAME }} \
-          --option-settings file://eb-env-settings.json
-
-      - name: Generate deployment package
-        run: |
-          # 임시 디렉토리 생성
-          TEMP_DIR=$(mktemp -d)
-          cd $TEMP_DIR
-          
-          # Docker 설정 파일 생성
-          mkdir -p .docker
-          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" | base64)'"}}}' > .docker/config.json
-          chmod 600 .docker/config.json
           
           # Dockerrun.aws.json 생성
           cat > Dockerrun.aws.json << EOF
@@ -214,7 +207,12 @@ jobs:
           cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .
           
           # 배포 패키지 생성
-          zip -r $GITHUB_WORKSPACE/deploy.zip Dockerrun.aws.json .ebextensions/* .elasticbeanstalk/* .docker/config.json
+          zip -r $GITHUB_WORKSPACE/deploy.zip \
+            Dockerrun.aws.json \
+            .ebextensions/* \
+            .elasticbeanstalk/* \
+            .docker/config.json \
+            ebconfig.json
           
           # 임시 디렉토리 정리
           cd $GITHUB_WORKSPACE
@@ -222,31 +220,32 @@ jobs:
           
           # 배포 패키지 내용 확인
           unzip -l deploy.zip
-#      - name: Check environment status
-#        run: |
-#          max_attempts=30
-#          attempt=1
-#
-#          while [ $attempt -le $max_attempts ]; do
-#            status=$(aws elasticbeanstalk describe-environments \
-#              --environment-names ${{ env.EB_ENV_NAME }} \
-#              --query 'Environments[0].Status' \
-#              --output text)
-#
-#            if [ "$status" = "Ready" ]; then
-#              echo "Environment is ready for deployment"
-#              break
-#            fi
-#
-#            echo "Environment status is $status. Waiting... (Attempt $attempt/$max_attempts)"
-#            sleep 30
-#            attempt=$((attempt + 1))
-#          done
-#
-#          if [ $attempt -gt $max_attempts ]; then
-#            echo "Environment did not become ready within the timeout period"
-#            exit 1
-#          fi
+
+      - name: Check environment status
+        run: |
+          max_attempts=30
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            status=$(aws elasticbeanstalk describe-environments \
+              --environment-names ${{ env.EB_ENV_NAME }} \
+              --query 'Environments[0].Status' \
+              --output text)
+
+            if [ "$status" = "Ready" ]; then
+              echo "Environment is ready for deployment"
+              break
+            fi
+
+            echo "Environment status is $status. Waiting... (Attempt $attempt/$max_attempts)"
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+
+          if [ $attempt -gt $max_attempts ]; then
+            echo "Environment did not become ready within the timeout period"
+            exit 1
+          fi
 
       - name: Deploy to AWS Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v21
@@ -259,6 +258,7 @@ jobs:
           region: ${{ env.AWS_REGION }}
           deployment_package: deploy.zip
           wait_for_deployment: true
+          use_existing_version_if_available: false
 
       # 배포 후 헬스체크
       - name: Health check

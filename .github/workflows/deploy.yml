@@ -46,6 +46,24 @@ jobs:
       - name: Set up Docker Buildx    # Docker 빌드 도구 설정
         uses: docker/setup-buildx-action@v3
 
+      - name: Debug ECR Access
+        run: |
+          echo "Checking ECR Registry..."
+          aws ecr describe-repositories
+          
+          echo "Checking specific repository..."
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }}
+          
+          echo "ECR Login test..."
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+          
+          echo "Checking Environment Variables..."
+          echo "ECR_REGISTRY: ${{ env.ECR_REGISTRY }}"
+          echo "ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}"
+          
+          echo "Checking IAM Permissions..."
+          aws sts get-caller-identity
+
       - name: Build and push Spring Boot image    # Spring Boot 이미지 빌드 및 푸시
         uses: docker/build-push-action@v5
         with:

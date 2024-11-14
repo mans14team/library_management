@@ -20,6 +20,5 @@
       "ContainerDirectory": "/app/logs"
     }
   ],
-  "Logging": "/var/log/eb-docker/containers/app",
-  "Memory": 512
+  "Logging": "/var/log/eb-docker/containers/app"
 }

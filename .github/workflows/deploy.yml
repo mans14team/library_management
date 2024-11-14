@@ -100,6 +100,12 @@ jobs:
           TEMP_DIR=$(mktemp -d)
           cd $TEMP_DIR
           
+          # 기존 Dockerrun.aws.json 파일이 존재하면 삭제
+          if [ -f "Dockerrun.aws.json" ]; then
+            echo "Existing Dockerrun.aws.json found. Deleting it to prevent conflicts."
+            rm Dockerrun.aws.json
+          fi
+          
           # Dockerrun.aws.json 생성
           cat > Dockerrun.aws.json << EOF
           {

@@ -2,7 +2,6 @@ package com.example.library_management.domain.bookRental.controller;
 
 import com.example.library_management.domain.bookRental.dto.BookRentalRequestDto;
 import com.example.library_management.domain.bookRental.dto.BookRentalResponseDto;
-import com.example.library_management.domain.bookRental.entity.BookRental;
 import com.example.library_management.domain.bookRental.exception.DiffrentBookCopyReservationException;
 import com.example.library_management.domain.bookRental.service.BookRentalService;
 import com.example.library_management.global.security.UserDetailsImpl;
@@ -16,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/rental")
-public class bookRentalController {
+public class BookRentalController {
     private final BookRentalService bookRentalService;
 
     @PostMapping

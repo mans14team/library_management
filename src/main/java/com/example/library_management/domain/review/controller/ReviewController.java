@@ -62,7 +62,6 @@ public class ReviewController {
             @RequestParam(required = false) Long bookId,
             @RequestParam(required = false) Integer reviewStar
     ) {
-        log.info("잘 들어오는지 확인 중 ,,,");
         return ResponseEntity.ok(reviewService.findAllByMultipleConditions(page, size, bookId, reviewStar));
 
     }

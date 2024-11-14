@@ -100,35 +100,37 @@ jobs:
           TEMP_DIR=$(mktemp -d)
           cd $TEMP_DIR
           
-          # 기존 Dockerrun.aws.json 파일이 존재하면 삭제
-          if [ -f "Dockerrun.aws.json" ]; then
-            echo "Existing Dockerrun.aws.json found. Deleting it to prevent conflicts."
-            rm Dockerrun.aws.json
-          fi
+          # docker-compose.yml 생성
+          cat > docker-compose.yml << EOF
+          version: '3.8'
           
-          # Dockerrun.aws.json 생성
-          cat > Dockerrun.aws.json << EOF
-          {
-            "AWSEBDockerrunVersion": "1",
-            "Image": {
-              "Name": "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest",
-              "Update": "true"
-            },
-            "Ports": [
-              {
-                "ContainerPort": 8080,
-                "HostPort": 8080
-              }
-            ],
-            "Volumes": [
-              {
-                "HostDirectory": "/var/log/eb-docker/containers/app",
-                "ContainerDirectory": "/app/logs"
-              }
-            ],
-            "Logging": "/var/log/eb-docker/containers/app",
-            "Memory": 512
-          }
+          services:
+            spring-app:
+              image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+              container_name: spring-app
+              ports:
+                - "8080:8080"
+              env_file:
+                - .env
+              volumes:
+                - /var/log/eb-docker/containers/app:/app/logs
+              networks:
+                - app-network
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+                start_period: 40s
+              deploy:
+                resources:
+                  limits:
+                    memory: 512M
+              restart: unless-stopped
+          
+          networks:
+            app-network:
+              driver: bridge
           EOF
           
           # .env 파일 생성
@@ -150,16 +152,26 @@ jobs:
           TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
           EOF
           
+          # docker-compose 실행 스크립트 생성
+          cat > start-application.sh << EOF
+          #!/bin/bash
+          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          docker-compose down --remove-orphans
+          docker-compose up -d
+          EOF
+          chmod +x start-application.sh
+          
           # 필요한 파일들 복사
           cp -r $GITHUB_WORKSPACE/.ebextensions .
           cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .  
           
           # 배포 패키지 생성
           zip -r $GITHUB_WORKSPACE/deploy.zip \
-            Dockerrun.aws.json \
+            docker-compose.yml \
             .env \
+            start-application.sh \
             .ebextensions/* \
-            .elasticbeanstalk/* \
+            .elasticbeanstalk/*
           
           # 임시 디렉토리 정리
           cd $GITHUB_WORKSPACE

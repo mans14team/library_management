@@ -19,7 +19,7 @@ public class RoomReserveCleanupScheduler {
     private final JobLauncher jobLauncher;
     private final Job roomReservationBackupJob;
 
-    @Scheduled(cron = "0 18 13 * * ?") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정에 실행
     public void scheduleBackupJob() {
         try {
             // 새로운 JobParameters를 매번 생성하여 실행

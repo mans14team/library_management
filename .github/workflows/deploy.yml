@@ -111,7 +111,7 @@ jobs:
           {
             "AWSEBDockerrunVersion": "1",
             "Image": {
-              "Name": "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}",
+              "Name": "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest",
               "Update": "true"
             },
             "Ports": [
@@ -131,85 +131,23 @@ jobs:
           }
           EOF
           
-          # 환경 변수 설정을 파일로 생성
-          cat > eb-env-settings.json << EOF
-          [
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "ECR_REGISTRY",
-              "Value": "${{ env.ECR_REGISTRY }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "ECR_REPOSITORY",
-              "Value": "${{ env.ECR_REPOSITORY }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "SPRING_PROFILES_ACTIVE",
-              "Value": "prod"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "DB_HOST",
-              "Value": "${{ secrets.DB_HOST }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "DB_USERNAME",
-              "Value": "${{ secrets.DB_USERNAME }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "DB_PASSWORD",
-              "Value": "${{ secrets.DB_PASSWORD }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "REDIS_HOST",
-              "Value": "${{ secrets.REDIS_HOST }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "REDIS_PASSWORD",
-              "Value": "${{ secrets.REDIS_PASSWORD }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "JWT_SECRET_KEY",
-              "Value": "${{ secrets.JWT_SECRET_KEY }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "OWNER_TOKEN",
-              "Value": "${{ secrets.OWNER_TOKEN }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "TOSS_SECRET_KEY",
-              "Value": "${{ secrets.TOSS_SECRET_KEY }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "TOSS_CLIENT_KEY",
-              "Value": "${{ secrets.TOSS_CLIENT_KEY }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "TOSS_SUCCESS_URL",
-              "Value": "${{ secrets.TOSS_SUCCESS_URL }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "TOSS_FAIL_URL",
-              "Value": "${{ secrets.TOSS_FAIL_URL }}"
-            },
-            {
-              "Namespace": "aws:elasticbeanstalk:application:environment",
-              "OptionName": "TOSS_BASE_URL",
-              "Value": "${{ secrets.TOSS_BASE_URL }}"
-            }
-          ]
+          # .env 파일 생성
+          cat > .env << EOF
+          ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
+          SPRING_PROFILES_ACTIVE=prod
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
+          TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+          TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}
+          TOSS_SUCCESS_URL=${{ secrets.TOSS_SUCCESS_URL }}
+          TOSS_FAIL_URL=${{ secrets.TOSS_FAIL_URL }}
+          TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
           EOF
           
           # 필요한 파일들 복사
@@ -219,9 +157,9 @@ jobs:
           # 배포 패키지 생성
           zip -r $GITHUB_WORKSPACE/deploy.zip \
             Dockerrun.aws.json \
+            .env \
             .ebextensions/* \
             .elasticbeanstalk/* \
-            eb-env-settings.json
           
           # 임시 디렉토리 정리
           cd $GITHUB_WORKSPACE

@@ -38,7 +38,6 @@ public class RoomReserveBackup {
 
     public static RoomReserveBackup from(RoomReserve roomReserve) {
         RoomReserveBackup backup = new RoomReserveBackup();
-        //backup.id = roomReserve.getId();
         backup.reservationDate = roomReserve.getReservationDate();
         backup.reservationDateEnd = roomReserve.getReservationDateEnd();
         backup.userId = roomReserve.getUser().getId();

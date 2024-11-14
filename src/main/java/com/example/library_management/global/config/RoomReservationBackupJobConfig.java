@@ -18,7 +18,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Iterator;
@@ -40,7 +39,7 @@ public class RoomReservationBackupJobConfig {
         log.info("Starting roomReservationBackupJob");
         return new JobBuilder("roomReservationBackupJob", jobRepository)
                 .start(backupRoomReservationsStep())
-                //.next(deleteExpiredRoomReservationsStep())
+                .next(deleteExpiredRoomReservationsStep())
                 .build();
     }
 
@@ -50,7 +49,7 @@ public class RoomReservationBackupJobConfig {
         // SimpleStepBuilder를 사용해 Chunk 기반 Step 구성
         SimpleStepBuilder<RoomReserve, RoomReserveBackup> stepBuilder =
                 new StepBuilder("backupRoomReservationsStep", jobRepository)
-                        .chunk(2, transactionManager);
+                        .chunk(10, transactionManager);
 
         return stepBuilder
                 .reader(roomReservationReader())
@@ -64,7 +63,7 @@ public class RoomReservationBackupJobConfig {
     public Step deleteExpiredRoomReservationsStep() {
         // 예약 삭제를 위해 ItemReader, ItemProcessor, ItemWriter 사용
         return new StepBuilder("deleteExpiredRoomReservationsStep", jobRepository)
-                .<RoomReserve, RoomReserve>chunk(2, transactionManager)
+                .<RoomReserve, RoomReserve>chunk(10, transactionManager)
                 .reader(roomReservationReaderForDelete())  // 예약 읽기
                 .processor(roomReservationProcessorForDelete()) // 예약 처리
                 .writer(roomReservationDeleteWriter()) // 예약 삭제
@@ -85,10 +84,9 @@ public class RoomReservationBackupJobConfig {
             public RoomReserve read() throws Exception {
                 if (iterator.hasNext()) {
                     RoomReserve roomReserve = iterator.next();
-                    System.out.println("Reading RoomReserve: " + roomReserve);
+                    log.info("Reading RoomReserve: {}", roomReserve);
                     return roomReserve;
                 } else {
-                    System.out.println("없음");
                     return null;
                 }
             }
@@ -100,7 +98,7 @@ public class RoomReservationBackupJobConfig {
         return new ItemProcessor<RoomReserve, RoomReserveBackup>() {
             @Override
             public RoomReserveBackup process(RoomReserve roomReserve) throws Exception {
-                System.out.println("처리중 : "+roomReserve.toString());
+                log.info("Process 진행 중: {}", roomReserve);
                 return RoomReserveBackup.from(roomReserve);  // from 메서드를 호출하여 RoomReserveBackup 생성
             }
         };
@@ -111,11 +109,6 @@ public class RoomReservationBackupJobConfig {
         return backups -> {
             if (!backups.isEmpty()) {
                 log.info("현재 저장되어 있는 {} 개의 예약 데이터를 백업합니다.", backups.size());
-//                for (RoomReserveBackup backup : backups) {
-//                    log.info("백업 데이터 저장 중: {}", backup);
-//                    RoomReserveBackup roomReserveBackup = roomReserveBackupRepository.save(backup);  // 하나씩 저장
-//                    System.out.println("저장 완료된 백업 :"+roomReserveBackup);
-//                }
                 backups.forEach(backup -> log.info("백업 예약 데이터: {}", backup));
                 roomReserveBackupRepository.saveAll(backups);
             } else {
@@ -128,6 +121,10 @@ public class RoomReservationBackupJobConfig {
     @Bean
     public ItemReader<RoomReserve> roomReservationReaderForDelete() {
         List<RoomReserve> expiredReservations = roomReserveRepository.findExpiredReservations(LocalDateTime.now());
+        log.info("삭제 대상 예약 데이터 {}건을 읽어왔습니다.", expiredReservations.size());
+        for (RoomReserve reserve : expiredReservations) {
+            log.info("삭제 대상 예약 데이터: {}", reserve);
+        }
         Iterator<RoomReserve> iterator = expiredReservations.iterator();
 
         return () -> iterator.hasNext() ? iterator.next() : null;
@@ -136,13 +133,20 @@ public class RoomReservationBackupJobConfig {
     // 예약 데이터를 처리하는 Processor (삭제용)
     @Bean
     public ItemProcessor<RoomReserve, RoomReserve> roomReservationProcessorForDelete() {
-        return roomReserve -> roomReserve; // 단순히 삭제할 예약을 반환
+        return roomReserve -> {
+            log.info("처리 중인 삭제 대상 예약 데이터: {}", roomReserve);
+            return roomReserve; // 단순히 삭제할 예약을 반환
+        };
     }
 
     // 예약을 삭제하는 Writer
     @Bean
     public ItemWriter<RoomReserve> roomReservationDeleteWriter() {
-        return roomReserves -> roomReserveRepository.deleteAll(roomReserves);
+        return roomReserves -> {
+            log.info("삭제할 예약 데이터 {}건을 삭제합니다.", roomReserves.size());
+            roomReserveRepository.deleteAll(roomReserves);
+            log.info("삭제 작업이 완료되었습니다.");
+        };
     }
 
 }

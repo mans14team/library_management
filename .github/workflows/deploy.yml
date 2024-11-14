@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [ feature/ci_cd ]
+    branches: [ main ]
 
 env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}

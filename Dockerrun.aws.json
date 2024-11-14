@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "anlee20/spring-app:latest",
+    "Name": "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest",
     "Update": "true"
   },
   "Authentication": {

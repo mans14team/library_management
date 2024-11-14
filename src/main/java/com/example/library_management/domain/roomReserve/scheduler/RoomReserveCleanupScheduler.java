@@ -10,11 +10,6 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Configuration
@@ -24,7 +19,7 @@ public class RoomReserveCleanupScheduler {
     private final JobLauncher jobLauncher;
     private final Job roomReservationBackupJob;
 
-    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정에 실행
+    @Scheduled(cron = "0 18 13 * * ?") // 매일 자정에 실행
     public void scheduleBackupJob() {
         try {
             // 새로운 JobParameters를 매번 생성하여 실행

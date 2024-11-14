@@ -15,8 +15,12 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
+import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.LocalDateTime;
@@ -40,6 +44,7 @@ public class RoomReservationBackupJobConfig {
         return new JobBuilder("roomReservationBackupJob", jobRepository)
                 .start(backupRoomReservationsStep())
                 .next(deleteExpiredRoomReservationsStep())
+                .next(exportBackupDataStep())
                 .build();
     }
 
@@ -58,7 +63,7 @@ public class RoomReservationBackupJobConfig {
                 .build();
     }
 
-    // 백업된 예약 데이터들을 삭제하는 Step
+    // 백업을 완료한 기존 예약 데이터들을 삭제하는 Step
     @Bean
     public Step deleteExpiredRoomReservationsStep() {
         // 예약 삭제를 위해 ItemReader, ItemProcessor, ItemWriter 사용
@@ -67,6 +72,16 @@ public class RoomReservationBackupJobConfig {
                 .reader(roomReservationReaderForDelete())  // 예약 읽기
                 .processor(roomReservationProcessorForDelete()) // 예약 처리
                 .writer(roomReservationDeleteWriter()) // 예약 삭제
+                .build();
+    }
+
+    // 백업된 데이터들을 파일로 추출하는 Step
+    @Bean
+    public Step exportBackupDataStep() {
+        return new StepBuilder("exportBackupDataStep", jobRepository)
+                .<RoomReserveBackup, RoomReserveBackup>chunk(10, transactionManager)
+                .reader(roomReserveBackupReader())  // RoomReserveBackup 테이블의 데이터를 읽어오는 reader
+                .writer(backupDataFileWriter())     // 파일로 데이터를 쓰는 writer
                 .build();
     }
 
@@ -149,4 +164,23 @@ public class RoomReservationBackupJobConfig {
         };
     }
 
+    // 백업된 데이터를 읽어오는 Reader
+    @Bean
+    public ItemReader<RoomReserveBackup> roomReserveBackupReader() {
+        List<RoomReserveBackup> backupData = roomReserveBackupRepository.findAll();
+        return new IteratorItemReader<>(backupData);
+    }
+
+    // 백업된 데이터를 파일로 출력하는 Writer
+    @Bean
+    public FlatFileItemWriter<RoomReserveBackup> backupDataFileWriter() {
+        return new FlatFileItemWriterBuilder<RoomReserveBackup>()
+                .name("backupDataFileWriter")
+                .resource(new FileSystemResource("backup/room_reserve_backup.csv"))
+                .delimited()
+                .delimiter(",")
+                .names("reservationDate", "reservationDateEnd", "userId", "roomId", "backupTimestamp")
+                .append(true)  // 이어서 쓰기 설정
+                .build();
+    }
 }

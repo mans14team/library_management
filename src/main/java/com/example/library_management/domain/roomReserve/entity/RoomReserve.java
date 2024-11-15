@@ -6,11 +6,13 @@ import com.example.library_management.domain.roomReserve.dto.request.RoomReserve
 import com.example.library_management.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@ToString
 @Table(name = "room_reserve")
 public class RoomReserve extends Timestamped {
 

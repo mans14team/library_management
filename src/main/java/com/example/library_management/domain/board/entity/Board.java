@@ -17,7 +17,11 @@ import java.util.Optional;
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "board")
+@Table(name = "board", indexes = {
+        @Index(name = "idx_board_type_status_pinned_modified",
+        columnList = "board_type,status,is_pinned DESC,modified_at DESC"),
+        @Index(name = "idx_board_title", columnList = "title")
+})
 public class Board extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

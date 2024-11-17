@@ -3,6 +3,7 @@ package com.example.library_management.domain.board.service;
 import com.example.library_management.domain.board.dto.request.BoardCreateRequestDto;
 import com.example.library_management.domain.board.dto.request.BoardSearchCondition;
 import com.example.library_management.domain.board.dto.request.BoardUpdateRequestDto;
+import com.example.library_management.domain.board.dto.response.BoardCacheDto;
 import com.example.library_management.domain.board.dto.response.BoardListResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardSearchResult;
@@ -15,20 +16,30 @@ import com.example.library_management.domain.board.repository.BoardRepository;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.enums.UserRole;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardService {
     private final BoardRepository boardRepository;
+    private final BoardCacheService boardCacheService;
     
     // 게시글 생성
     @Transactional
+    @CacheEvict(value = "boardList", allEntries = true)
     public BoardResponseDto createBoard(BoardCreateRequestDto requestDto, User user){
+        log.info("Creating new board and evicting boardList cache");
+
         // 게시글 작성 권한 검증
         validateBoardCreateAuthority(requestDto.getBoardType(), user);
         
@@ -49,7 +60,11 @@ public class BoardService {
 
     // 게시글 상세 조회
     @Transactional
+    @Cacheable(value = "board",
+    key = "#boardId",
+    unless = "#result == null")
     public BoardResponseDto getBoard(Long boardId, User user) {
+        log.info("Cache Miss - Fetching board detail from DB: boardId={}", boardId);
         Board board = findBoardById(boardId);
 
         // 게시글이 삭제된 상태인지 확인
@@ -67,30 +82,11 @@ public class BoardService {
     }
 
     // 게시글 목록 조회
-    public Page<BoardListResponseDto> getBoardList(BoardType boardType, boolean includeSecret, Pageable pageable, User user) {
-        // 관리자인 경우
-        if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
-            return boardRepository.findAllBoardDtoList(
-                    boardType,
-                    BoardStatus.ACTIVE,
-                    pageable
-            );
-        }// 일반 사용자이고 비밀글 포함 요청인 경우
-        else if (includeSecret) {
-            return boardRepository.findBoardDtoListForUser(
-                    boardType,
-                    BoardStatus.ACTIVE,
-                    user,
-                    pageable
-            );
-        }// 일반 사용자이고 공개글만 요청하는 경우
-        else {
-            return boardRepository.findBoardDtoList(
-                    boardType,
-                    BoardStatus.ACTIVE,
-                    pageable
-            );
-        }
+    public Page<BoardListResponseDto> getBoardList(BoardType boardType, boolean includeSecret,
+                                                   Pageable pageable, User user) {
+        BoardCacheDto cacheData = boardCacheService.getCachedBoardList(boardType, includeSecret, pageable, user);
+
+        return new PageImpl<>(cacheData.getContent(), pageable, cacheData.getTotalElements());
     }
 
     // 게시글 검색 메서드
@@ -100,7 +96,13 @@ public class BoardService {
 
     // 게시글 수정
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "board", key = "#boardId"),
+            @CacheEvict(value = "boardList", allEntries = true)
+    })
     public BoardResponseDto updateBoard(Long boardId, BoardUpdateRequestDto requestDto, User user) {
+        log.info("Updating board and evicting related caches: boardId={}", boardId);
+
         Board board = findBoardById(boardId);
 
         // 삭제된 게시글 체크 추가
@@ -121,7 +123,13 @@ public class BoardService {
 
     // 게시글 삭제
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "board", key = "#boardId"),
+            @CacheEvict(value = "boardList", allEntries = true)
+    })
     public String deleteBoard(Long boardId, User user) {
+        log.info("Deleting board and evicting related caches: boardId={}", boardId);
+
         Board board = findBoardById(boardId);
 
         // 이미 삭제된 게시글인지 확인하는 로직 추가

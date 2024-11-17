@@ -8,8 +8,10 @@ import com.example.library_management.domain.user.exception.NotFoundUserExceptio
 import com.example.library_management.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,8 +57,9 @@ public class NotificationService {
     }
 
     //실제 이메일 전송 로직
+    @Async
     public void sendEmail(String toEmail, String message) {
-
+    try {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(toEmail);
         mailMessage.setSubject("도서관 알림");
@@ -65,6 +68,10 @@ public class NotificationService {
         mailSender.send(mailMessage);
 
         log.info("이메일을 성공적으로 보냈습니다.");
+    }catch (MailException e){
+        log.error("이메일 전송 에러 발생: {}", e.getMessage(),e);
+    }
+
     }
 
 

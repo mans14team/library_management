@@ -33,6 +33,4 @@ public interface MembershipPaymentRepository extends JpaRepository<MembershipPay
     // 특정 멤버십의 가장 최근 결제 정보를 조회
     @Query("SELECT mp FROM MembershipPayment mp WHERE mp.membership = :membership ORDER BY mp.createdAt DESC")
     Optional<MembershipPayment> findTopByMembershipOrderByCreatedAtDesc(@Param("membership") Membership membership);
-
 }
-

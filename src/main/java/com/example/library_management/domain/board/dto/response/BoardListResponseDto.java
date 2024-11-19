@@ -11,11 +11,9 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NONE // 타입 정보를 사용하지 않음
-)
 @Getter
 @NoArgsConstructor
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public class BoardListResponseDto implements Serializable {
     private Long id;
     private String title;

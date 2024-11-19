@@ -81,7 +81,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 출처
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://library-management.org",
+                "http://library-management.org",
+                "http://Librarymanagement-env.eba-wmdvgwvy.ap-northeast-2.elasticbeanstalk.com"
+        )); // 허용할 출처
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowCredentials(true); // 쿠키와 인증 정보를 허용
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type")); // 허용할 헤더 설정

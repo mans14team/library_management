@@ -3,6 +3,7 @@ package com.example.library_management.domain.board.service;
 import com.example.library_management.domain.board.dto.request.BoardCreateRequestDto;
 import com.example.library_management.domain.board.dto.request.BoardSearchCondition;
 import com.example.library_management.domain.board.dto.request.BoardUpdateRequestDto;
+import com.example.library_management.domain.board.dto.response.BoardCacheDto;
 import com.example.library_management.domain.board.dto.response.BoardListResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardResponseDto;
 import com.example.library_management.domain.board.dto.response.BoardSearchResult;
@@ -46,6 +47,9 @@ class BoardServiceTest {
     @Mock
     private BoardRepository boardRepository;
 
+    @Mock
+    private BoardCacheService boardCacheService;
+
     @InjectMocks
     private BoardService boardService;
 
@@ -66,6 +70,8 @@ class BoardServiceTest {
         ReflectionTestUtils.setField(admin, "id", 2L);
         ReflectionTestUtils.setField(admin, "role", UserRole.ROLE_ADMIN);
         ReflectionTestUtils.setField(admin, "userName", "admin");
+
+        boardService = new BoardService(boardRepository, boardCacheService);
     }
 
     @Nested
@@ -442,26 +448,24 @@ class BoardServiceTest {
             // given
             Pageable pageable = PageRequest.of(0, 10);
             List<Board> boards = createSampleBoards();
-            Page<BoardListResponseDto> boardPage = new PageImpl<>(
-                    boards.stream()
-                            .map(board -> new BoardListResponseDto(
-                                    board.getId(),
-                                    board.getTitle(),
-                                    board.getUser().getUserName(),
-                                    board.getViewCount(),
-                                    board.isSecret(),
-                                    board.isPinned(),
-                                    board.getBoardType(),
-                                    board.getModifiedAt(),
-                                    0L  // 댓글 수
-                            ))
-                            .collect(Collectors.toList()),
-                    pageable,
-                    boards.size()
-            );
+            List<BoardListResponseDto> dtoList = boards.stream()
+                    .map(board -> new BoardListResponseDto(
+                            board.getId(),
+                            board.getTitle(),
+                            board.getUser().getUserName(),
+                            board.getViewCount(),
+                            board.isSecret(),
+                            board.isPinned(),
+                            board.getBoardType(),
+                            board.getModifiedAt(),
+                            0L
+                    ))
+                    .collect(Collectors.toList());
 
-            given(boardRepository.findAllBoardDtoList(any(BoardType.class), any(BoardStatus.class), any(Pageable.class)))
-                    .willReturn(boardPage);
+            BoardCacheDto cacheDto = new BoardCacheDto(dtoList, boards.size());
+
+            given(boardCacheService.getCachedBoardList(any(BoardType.class), anyBoolean(), any(Pageable.class), eq(admin)))
+                    .willReturn(cacheDto);
 
             // when
             Page<BoardListResponseDto> result = boardService.getBoardList(BoardType.INQUIRY, true, pageable, admin);
@@ -469,7 +473,8 @@ class BoardServiceTest {
             // then
             assertNotNull(result);
             assertEquals(4, result.getContent().size());
-            verify(boardRepository, times(1)).findAllBoardDtoList(any(BoardType.class), any(BoardStatus.class), any(Pageable.class));
+            verify(boardCacheService).getCachedBoardList(eq(BoardType.INQUIRY), eq(true), eq(pageable), eq(admin));
+            verifyNoInteractions(boardRepository);  // Repository는 호출되지 않아야 함
         }
 
         @Test
@@ -480,34 +485,33 @@ class BoardServiceTest {
                     .filter(board -> !board.isSecret() || board.getUser().equals(user))
                     .collect(Collectors.toList());
 
-            Page<BoardListResponseDto> boardPage = new PageImpl<>(
-                    boards.stream()
-                            .map(board -> new BoardListResponseDto(
-                                    board.getId(),
-                                    board.getTitle(),
-                                    board.getUser().getUserName(),
-                                    board.getViewCount(),
-                                    board.isSecret(),
-                                    board.isPinned(),
-                                    board.getBoardType(),
-                                    board.getModifiedAt(),
-                                    0L
-                            ))
-                            .collect(Collectors.toList()),
-                    pageable,
-                    boards.size()
-            );
+            List<BoardListResponseDto> dtoList = boards.stream()
+                    .map(board -> new BoardListResponseDto(
+                            board.getId(),
+                            board.getTitle(),
+                            board.getUser().getUserName(),
+                            board.getViewCount(),
+                            board.isSecret(),
+                            board.isPinned(),
+                            board.getBoardType(),
+                            board.getModifiedAt(),
+                            0L
+                    ))
+                    .collect(Collectors.toList());
 
-            given(boardRepository.findBoardDtoListForUser(any(BoardType.class), any(BoardStatus.class), eq(user), any(Pageable.class)))
-                    .willReturn(boardPage);
+            BoardCacheDto cacheDto = new BoardCacheDto(dtoList, boards.size());
+
+            given(boardCacheService.getCachedBoardList(any(BoardType.class), anyBoolean(), any(Pageable.class), eq(user)))
+                    .willReturn(cacheDto);
 
             // when
             Page<BoardListResponseDto> result = boardService.getBoardList(BoardType.INQUIRY, true, pageable, user);
 
             // then
             assertNotNull(result);
-            assertEquals(3, result.getContent().size());  // 공개글 2개 + 자신의 비밀글 1개
-            verify(boardRepository, times(1)).findBoardDtoListForUser(any(BoardType.class), any(BoardStatus.class), eq(user), any(Pageable.class));
+            assertEquals(3, result.getContent().size());
+            verify(boardCacheService).getCachedBoardList(eq(BoardType.INQUIRY), eq(true), eq(pageable), eq(user));
+            verifyNoInteractions(boardRepository);
         }
 
         @Test
@@ -518,35 +522,34 @@ class BoardServiceTest {
                     .filter(board -> !board.isSecret())
                     .collect(Collectors.toList());
 
-            Page<BoardListResponseDto> boardPage = new PageImpl<>(
-                    boards.stream()
-                            .map(board -> new BoardListResponseDto(
-                                    board.getId(),
-                                    board.getTitle(),
-                                    board.getUser().getUserName(),
-                                    board.getViewCount(),
-                                    board.isSecret(),
-                                    board.isPinned(),
-                                    board.getBoardType(),
-                                    board.getModifiedAt(),
-                                    0L
-                            ))
-                            .collect(Collectors.toList()),
-                    pageable,
-                    boards.size()
-            );
+            List<BoardListResponseDto> dtoList = boards.stream()
+                    .map(board -> new BoardListResponseDto(
+                            board.getId(),
+                            board.getTitle(),
+                            board.getUser().getUserName(),
+                            board.getViewCount(),
+                            board.isSecret(),
+                            board.isPinned(),
+                            board.getBoardType(),
+                            board.getModifiedAt(),
+                            0L
+                    ))
+                    .collect(Collectors.toList());
 
-            given(boardRepository.findBoardDtoList(any(BoardType.class), any(BoardStatus.class), any(Pageable.class)))
-                    .willReturn(boardPage);
+            BoardCacheDto cacheDto = new BoardCacheDto(dtoList, boards.size());
+
+            given(boardCacheService.getCachedBoardList(any(BoardType.class), anyBoolean(), any(Pageable.class), eq(user)))
+                    .willReturn(cacheDto);
 
             // when
             Page<BoardListResponseDto> result = boardService.getBoardList(BoardType.INQUIRY, false, pageable, user);
 
             // then
             assertNotNull(result);
-            assertEquals(2, result.getContent().size());  // 공개글만 2개
+            assertEquals(2, result.getContent().size());
             assertTrue(result.getContent().stream().noneMatch(BoardListResponseDto::isSecret));
-            verify(boardRepository, times(1)).findBoardDtoList(any(BoardType.class), any(BoardStatus.class), any(Pageable.class));
+            verify(boardCacheService).getCachedBoardList(eq(BoardType.INQUIRY), eq(false), eq(pageable), eq(user));
+            verifyNoInteractions(boardRepository);
         }
 
         // 테스트용 샘플 게시글 생성 메서드

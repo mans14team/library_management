@@ -1,5 +1,6 @@
 package com.example.library_management.global.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -10,8 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
 
 @Configuration
+@Slf4j
 public class RabbitMQConfig {
     // Queue, Exchange, Binding 설정
     // Dead Letter Queue 설정 (메시지 처리 실패시 저장되는 큐)
@@ -29,6 +34,9 @@ public class RabbitMQConfig {
     @Value("${spring.rabbitmq.password}")
     private String password;
 
+    @Value("${spring.rabbitmq.ssl.enabled:false}")  // SSL 활성화 여부, 기본값 false
+    private boolean sslEnabled;
+
     @Value("${rabbitmq.queue.email}")
     private String emailQueue;
 
@@ -45,6 +53,26 @@ public class RabbitMQConfig {
         connectionFactory.setPort(port);
         connectionFactory.setUsername(username);
         connectionFactory.setPassword(password);
+
+        // SSL이 활성화된 경우에만 SSL 프로토콜 사용
+        if (sslEnabled) {
+            try {
+                connectionFactory.getRabbitConnectionFactory().useSslProtocol();
+                log.info("RabbitMQ SSL connection enabled successfully");
+            } catch (NoSuchAlgorithmException e) {
+                log.error("SSL algorithm not available: {}", e.getMessage());
+                throw new IllegalStateException("Failed to enable SSL for RabbitMQ", e);
+            } catch (KeyManagementException e) {
+                log.error("SSL key management error: {}", e.getMessage());
+                throw new IllegalStateException("Failed to configure SSL for RabbitMQ", e);
+            } catch (Exception e) {
+                log.error("Unexpected error while configuring SSL: {}", e.getMessage());
+                throw new IllegalStateException("Failed to setup SSL connection for RabbitMQ", e);
+            }
+        } else {
+            log.info("RabbitMQ SSL connection disabled");
+        }
+
         return connectionFactory;
     }
 

@@ -44,7 +44,5 @@ public class NotificationAspect {
         notificationService.createNotification(requestDto);
 
         log.info("대여 알림 전송 완료 ! :{}", email);
-
-
     }
 }

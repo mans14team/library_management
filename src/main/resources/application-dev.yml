@@ -22,10 +22,12 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
   rabbitmq:
-    host: localhost
+    host: ${RABBITMQ_HOST}
     port: 5672
-    username: admin
-    password: admin123
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    ssl:
+      enabled: false
   batch:
     jdbc:
       initialize-schema: always

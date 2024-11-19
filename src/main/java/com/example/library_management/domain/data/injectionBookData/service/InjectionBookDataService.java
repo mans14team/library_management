@@ -6,60 +6,83 @@ import com.example.library_management.domain.book.repository.BookRepository;
 import com.example.library_management.domain.data.injectionBookData.dto.InjectionBookDataDto;
 import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.global.security.UserDetailsImpl;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class InjectionBookDataService {
+
     private final BookRepository bookRepository;
 
-    public void injectionBookData(String json, UserDetailsImpl userDetails) throws IOException{
-        if(!validateUser(userDetails)){
+    @Transactional
+    public void injectionBookData(UserDetailsImpl userDetails) throws IOException {
+        if (!validateUser(userDetails)) {
             throw new AuthorizedAdminException();
         }
 
+        File directory = new File("src/main/resources/data/jsons");
+
+        if (!directory.exists() || !directory.isDirectory()) {
+            throw new IllegalArgumentException("The provided path is not a valid directory.");
+        }
+
+        File[] jsonFiles = directory.listFiles((dir, name) -> name.endsWith(".json"));
+        if (jsonFiles == null || jsonFiles.length == 0) {
+            throw new IllegalArgumentException("No JSON files found in the directory.");
+        }
+
+        // Set으로 중복 검사 최적화
+        Set<String> existingIsbns = new HashSet<>(bookRepository.findAllIsbns());
+
+        for (File jsonFile : jsonFiles) {
+            processJsonFile(jsonFile, existingIsbns);
+        }
+    }
+
+    private void processJsonFile(File jsonFile, Set<String> existingIsbns) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         List<InjectionBookDataDto> dtoList = objectMapper.readValue(
-                new File(json),
+                jsonFile,
                 new TypeReference<List<InjectionBookDataDto>>() {}
         );
 
-        List<Book> entities = dtoList.stream()
+        // JSON 데이터 내 중복을 제거하면서, 기존 데이터와 중복된 ISBN 필터링
+        List<Book> entitiesToSave = dtoList.stream()
+                .filter(dto -> existingIsbns.add(dto.getIsbn()))  // Set에 추가되면 새로운 ISBN
                 .map(this::convertToEntity)
-                .toList();
+                .collect(Collectors.toList());
 
-        bookRepository.saveAll(entities);
+        if (!entitiesToSave.isEmpty()) {
+            List<Book> savedBooks = bookRepository.saveAll(entitiesToSave);
+            savedBooks.forEach(book -> existingIsbns.add(book.getIsbn()));
+        }
     }
 
     private Book convertToEntity(InjectionBookDataDto dto) {
-        Book book = new Book(
+        return new Book(
                 dto.getIsbn(),
                 dto.getBookTitle(),
                 dto.getBookPublished(),
-                dto.getAuthors().subList(0, Math.min(dto.getAuthors().size(), 5)),
-                dto.getPublishers().subList(0, Math.min(dto.getPublishers().size(), 5)),
-                dto.getSubjects().subList(0, Math.min(dto.getSubjects().size(), 5))
+                dto.getAuthors().stream().limit(5).collect(Collectors.toList()),  // 최대 5개 제한
+                dto.getPublishers().stream().limit(5).collect(Collectors.toList()),
+                dto.getSubjects().stream().limit(5).collect(Collectors.toList())
         );
-
-        return book;
     }
 
     public Boolean validateUser(UserDetailsImpl userDetails) {
         return userDetails.getUser().getRole().equals(UserRole.ROLE_ADMIN);
-    }
-
-    private void validateListSize(List<String> list, int maxSize, String listName) {
-        if (list.size() > maxSize) {
-            throw new IllegalArgumentException("The number of " + listName + " exceeds the allowed limit: " + maxSize);
-        }
     }
 
 }

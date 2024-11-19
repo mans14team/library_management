@@ -15,6 +15,7 @@ public class GlobalExceptionHandler {
     // GlobalException 처리
     @ExceptionHandler(GlobalException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleGlobalException(GlobalException e){
+        e.printStackTrace();
         return ResponseEntity
                 .status(e.getHttpStatus())
                 .body(ApiResponse.error(new ErrorResponse(e.getHttpStatus().value(), e.getMessage())));
@@ -23,6 +24,7 @@ public class GlobalExceptionHandler {
     // RuntimeException 처리
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleRuntimeException(RuntimeException e) {
+        e.printStackTrace();
         ErrorResponse errorResponse = new ErrorResponse(500, e.getMessage());
         return ResponseEntity
                 .status(500)

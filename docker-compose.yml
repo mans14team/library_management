@@ -19,7 +19,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
   app:
     image: ${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}
     container_name: spring-app
@@ -27,34 +26,32 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - DB_HOST=${DB_HOST}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_URL=${REDIS_URL}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - OWNER_TOKEN=${OWNER_TOKEN}
-      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
-      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
-      - TOSS_SUCCESS_URL=${TOSS_SUCCESS_URL}
-      - TOSS_FAIL_URL=${TOSS_FAIL_URL}
-      - TOSS_BASE_URL=${TOSS_BASE_URL}
-      - USER_NAME=${USER_NAME}
-      - USER_PASSWORD=${USER_PASSWORD}
-    restart: always
     networks:
       - app-network
     healthcheck: # 헬스체크 추가
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 40s    # 애플리케이션 시작 대기 시간
-
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - /C/Redis/Redis-7.4.1/redis.conf:/usr/local/etc/redis/redis.conf # redis.conf 파일 마운트
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ] # 커스텀 설정
 networks:
   app-network:
     name: app-network
     driver: bridge
+
+

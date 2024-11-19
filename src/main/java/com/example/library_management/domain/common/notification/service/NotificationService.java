@@ -41,9 +41,8 @@ public class NotificationService {
 
         producerService.sendEmailNotification(event);
     }
-
+    // 메시지 내용을 기반으로 알림 타입 결정
     private NotificationType determineNotificationType(NotificationRequestDto requestDto) {
-        // 메시지 내용을 기반으로 알림 타입 결정
         if (requestDto.getMessage().contains("책 반납")) {
             return NotificationType.RENTAL_REMINDER;
         } else if (requestDto.getMessage().contains("스터디룸")) {

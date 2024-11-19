@@ -31,12 +31,13 @@ public class NotificationConsumerService {
 
     @RabbitListener(queues = "${rabbitmq.queue.email}")
     public void handleEmailNotification(EmailNotificationEvent event) {
-        log.info("Received email notification event: {}", event);
+        log.info("수신된 이메일 알림: {}", event);
         try {
             sendEmail(event.getToEmail(), event.getMessage());
             saveNotification(event);
+            log.info("이메일 전송 성공: {}", event.getToEmail());
         } catch (Exception e) {
-            log.error("Failed to process email notification: {}", e.getMessage());
+            log.error("이메일 전송 실패: {}", e.getMessage(), e);
             throw new AmqpRejectAndDontRequeueException("Failed to process notification", e);
         }
     }

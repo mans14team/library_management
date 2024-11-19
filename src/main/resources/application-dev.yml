@@ -21,6 +21,11 @@ spring:
       host: ${REDIS_HOST}
       port: 6379
       password: ${REDIS_PASSWORD}
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin123
   batch:
     jdbc:
       initialize-schema: always
@@ -58,16 +63,13 @@ toss:
     base-url: ${TOSS_BASE_URL}
 
 rabbitmq:
-  host: localhost
-  port: 5672
-  username: admin
-  password: admin123
   queue:
     email: notification.email
   exchange:
     notification: notification.exchange
   routing:
     email: notification.email.routing
+
 
 custom:
   active-months: 4,5,6,7

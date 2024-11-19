@@ -1,9 +1,14 @@
 package com.example.library_management.domain.board.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NONE // 타입 정보를 사용하지 않음
+)
 @Getter
 public class BoardSearchResult {
     private Long id;

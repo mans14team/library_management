@@ -4,12 +4,16 @@ import com.example.library_management.domain.board.entity.Board;
 import com.example.library_management.domain.board.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NONE // 타입 정보를 사용하지 않음
+)
 @Getter
 @NoArgsConstructor
 public class BoardListResponseDto implements Serializable {

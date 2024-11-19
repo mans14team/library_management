@@ -3,10 +3,12 @@ package com.example.library_management.domain.roomReserve.dto.response;
 import com.example.library_management.domain.roomReserve.entity.RoomReserve;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class RoomReserveResponseDto {
     private Long id;

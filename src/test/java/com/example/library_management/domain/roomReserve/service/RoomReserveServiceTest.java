@@ -12,6 +12,7 @@ import com.example.library_management.domain.roomReserve.exception.*;
 import com.example.library_management.domain.roomReserve.repository.RoomReserveRepository;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.enums.UserRole;
+import com.example.library_management.global.config.CustomConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +48,9 @@ class RoomReserveServiceTest {
 
     @Mock
     private RoomService roomService;
+
+    @Mock
+    private CustomConfig customConfig;
 
     @InjectMocks
     private RoomReserveService roomReserveService;

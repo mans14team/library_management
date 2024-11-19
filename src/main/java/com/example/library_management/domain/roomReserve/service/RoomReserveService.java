@@ -58,13 +58,13 @@ public class RoomReserveService {
         도입하고자 하는 시스템은  대학교라고 가정
         중간고사 시험기간 4~5월
         기말고사 시험기간 6~7월
+        임의로, 내일배움캠프 최종발표 시연 때에 분산락을 적용하기위해 11월도 가정했습니다.
         LocalDateTime 타입의 getMonthValue()로 월 값을 추출하여 Redis 분산 락 사용여부를 결정.
      */
 
-    @Transactional
     public RoomReserveCreateResponseDto createRoomReserve(User user, Long roomId, RoomReserveCreateRequestDto roomReserveCreateRequestDto) {
         // 요청자 권한 확인    - 멤버쉽 권한 만이 스터디룸 예약을 할 수 있다.
-        //validateUserMembership(user);
+        validateUserMembership(user);
 
         LocalDateTime now = LocalDateTime.now();
         int currentMonth = now.getMonthValue();
@@ -77,30 +77,40 @@ public class RoomReserveService {
 
         try {
             if (useRedis) {
-                if (lock.tryLock(3, 1, TimeUnit.SECONDS)) {
+                log.info("Redis 분산락을 사용하여 스터디룸 예약을 시도합니다. Room ID: {}", roomId);
+                if (lock.tryLock(2, 1, TimeUnit.SECONDS)) {
                     // Redis 분산락 + 낙관적 락 혼용 스터디룸 예약 진행
-                    return processRoomReservation(user, roomId, roomReserveCreateRequestDto);
+                    log.info("락 획득 성공 - Room ID: {}", roomId);
+                    RoomReserveCreateResponseDto response = processRoomReservation(user, roomId, roomReserveCreateRequestDto);
+                    log.info("스터디룸 예약 성공 - Room ID: {}, User ID: {}", roomId, user.getId());
+                    return response;
                 } else {
+                    log.warn("락 획득 실패 - Room ID: {}. 요청이 타임아웃되었습니다.", roomId);
                     throw new ReservationLockTimeOutException();
                 }
             } else {
                 // 낙관적 락만 사용 스터디룸 예약 진행
-                return processRoomReservation(user, roomId, roomReserveCreateRequestDto);
+                log.info("낙관적 락을 사용하여 스터디룸 예약을 진행합니다. Room ID: {}", roomId);
+                RoomReserveCreateResponseDto response = processRoomReservation(user, roomId, roomReserveCreateRequestDto);
+                log.info("스터디룸 예약 성공 - Room ID: {}, User ID: {}", roomId, user.getId());
+                return response;
             }
         } catch (InterruptedException e) {
+            log.error("락 획득 과정에서 인터럽트 발생 - Room ID: {}", roomId, e);
             throw new RoomReserveException();
         } finally {
             if (useRedis && lock.isHeldByCurrentThread()) {
                 lock.unlock();
+                log.info("락 해제 완료 - Room ID: {}", roomId);
             }
         }
     }
 
     @Transactional
     public RoomReserveUpdateResponseDto updateRoomReserve(User user, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
+        log.info("Starting updateRoomReserve for user: {}, roomId: {}, reserveId: {}", user.getId(), roomId, reserveId);
         // 요청자 권한 확인    - 해당 스터디룸 예약을 했던 유저만이 스터디룸 예약을 수정 할 수 있다.
-        // 중복 뜨는건, 추후 AOP 고려
-        //validateUserMembership(user);
+        validateUserMembership(user);
 
         // 요청 날짜 확인
         LocalDateTime now = LocalDateTime.now();
@@ -108,46 +118,65 @@ public class RoomReserveService {
 
         List<Integer> activeMonths = customConfig.getActiveMonths();
         boolean useRedis = activeMonths.contains(currentMonth);
+        log.debug("Current month: {}, Active months: {}, Using Redis Lock: {}", currentMonth, activeMonths, useRedis);
+
 
         RLock lock = redissonClient.getLock("RoomReserveLock:" + roomId);
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
         RoomReserve filteredRoomReserve = findRoomReserveById(room, reserveId);
+        log.info("Room and reservation details retrieved. Room ID: {}, Reservation ID: {}", roomId, reserveId);
+
 
         // 예약자의 ID와 요청자의 ID가 동일한지 검증
         validateUserReservation(user, filteredRoomReserve);
+        log.info("User ID validation successful for user: {}", user.getId());
 
         // 예약 정보 업데이트
         updateRoomReserveInfo(filteredRoomReserve, roomReserveUpdateRequestDto);
+        log.info("Reservation information updated for reservation ID: {}", reserveId);
+
 
         // 수정 요청받은 시간 정보가 기존 예약과 겹치는지 판별
         checkReservationOverlap(room.getRoomReservations(), filteredRoomReserve);
+        log.info("Overlap check completed for reservation ID: {}", reserveId);
+
 
         if (useRedis) {
             // Redis 분산락을 사용하여 수정
             try {
                 // 락을 시도하여 획득
-                if (lock.tryLock(3, TimeUnit.SECONDS)) {
+                if (lock.tryLock(2, 1, TimeUnit.SECONDS)) {
                     try {
+                        log.info("Redis lock acquired for room ID: {}", roomId);
                         RoomReserve savedRoomReserve = roomReserveRepository.save(filteredRoomReserve);
+                        log.info("Reservation successfully saved for reservation ID: {}", reserveId);
                         return new RoomReserveUpdateResponseDto(savedRoomReserve);
                     } catch (OptimisticLockingFailureException e) {
+                        log.error("Optimistic locking conflict occurred for reservation ID: {}", reserveId, e);
                         throw new OptimisticLockConflictException();
+                    } finally {
+                        lock.unlock();
+                        log.info("Redis lock released for room ID: {}", roomId);
                     }
                 } else {
+                    log.warn("Failed to acquire Redis lock for room ID: {}", roomId);
                     throw new ReservationLockTimeOutException();
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // 중단된 스레드 복원
+                log.error("InterruptedException occurred while acquiring Redis lock for room ID: {}", roomId, e);
                 throw new RoomReserveException();
             }
         } else {
             // 낙관적 락만 사용하는 경우
             try {
                 RoomReserve savedRoomReserve = roomReserveRepository.save(filteredRoomReserve);
+                log.info("Reservation successfully saved with optimistic lock for reservation ID: {}", reserveId);
                 return new RoomReserveUpdateResponseDto(savedRoomReserve);
             } catch (OptimisticLockingFailureException e) {
+                log.error("Optimistic locking conflict occurred for reservation ID: {}", reserveId, e);
                 throw new OptimisticLockConflictException();
             }
         }
@@ -155,11 +184,13 @@ public class RoomReserveService {
 
     @Transactional
     public RoomReserveDeleteResponseDto deleteRoomReserve(User user, Long roomId, Long reserveId) {
+        log.info("Starting deleteRoomReserve for user: {}, roomId: {}, reserveId: {}", user.getId(), roomId, reserveId);
         // 요청자 권한 확인 - 멤버쉽 권한이 아니면 예외처리.
-        //validateUserMembership(user);
+        validateUserMembership(user);
 
         // 예약 정보 확인.
         Room room = roomService.findRoomById(roomId);
+        log.info("Room details retrieved for roomId: {}", roomId);
 
         RoomReserve filteredRoomReserve = room.getRoomReservations().stream()
                 .filter(reserve -> reserve.getId().equals(reserveId))
@@ -167,10 +198,13 @@ public class RoomReserveService {
 
         // 스터디룸 예약을 했던 유저만이 스터디룸 예약을 삭제 할 수 있다.
         if (!filteredRoomReserve.getUser().getId().equals(user.getId())) {
+            log.warn("User {} is not allowed to delete reservation with reserveId: {}", user.getId(), reserveId);
             throw new ReservationDeleteNotAllowedException();
         }
+        log.info("User {} authorized to delete reservation with reserveId: {}", user.getId(), reserveId);
 
         roomReserveRepository.delete(filteredRoomReserve);
+        log.info("Reservation deleted for reserveId: {}", reserveId);
 
         return new RoomReserveDeleteResponseDto(filteredRoomReserve);
     }

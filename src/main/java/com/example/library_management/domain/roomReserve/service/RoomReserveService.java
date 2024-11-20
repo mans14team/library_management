@@ -78,7 +78,7 @@ public class RoomReserveService {
         try {
             if (useRedis) {
                 log.info("Redis 분산락을 사용하여 스터디룸 예약을 시도합니다. Room ID: {}", roomId);
-                if (lock.tryLock(2, 1, TimeUnit.SECONDS)) {
+                if (lock.tryLock(2,1, TimeUnit.SECONDS)) {
                     // Redis 분산락 + 낙관적 락 혼용 스터디룸 예약 진행
                     log.info("락 획득 성공 - Room ID: {}", roomId);
                     RoomReserveCreateResponseDto response = processRoomReservation(user, roomId, roomReserveCreateRequestDto);
@@ -110,7 +110,7 @@ public class RoomReserveService {
     public RoomReserveUpdateResponseDto updateRoomReserve(User user, Long roomId, Long reserveId, RoomReserveUpdateRequestDto roomReserveUpdateRequestDto) {
         log.info("Starting updateRoomReserve for user: {}, roomId: {}, reserveId: {}", user.getId(), roomId, reserveId);
         // 요청자 권한 확인    - 해당 스터디룸 예약을 했던 유저만이 스터디룸 예약을 수정 할 수 있다.
-        validateUserMembership(user);
+        //validateUserMembership(user);
 
         // 요청 날짜 확인
         LocalDateTime now = LocalDateTime.now();

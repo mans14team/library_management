@@ -1,0 +1,271 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  EB_APP_NAME: library_management
+  EB_ENV_NAME: Librarymanagement-env
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+
+      # Docker 관련 단계 추가
+      - name: Set up Docker Buildx    # Docker 빌드 도구 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: Debug ECR Access
+        run: |
+          echo "Checking ECR Registry..."
+          aws ecr describe-repositories
+          
+          echo "Checking specific repository..."
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }}
+          
+          echo "ECR Login test..."
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+          
+          echo "Checking Environment Variables..."
+          echo "ECR_REGISTRY: ${{ env.ECR_REGISTRY }}"
+          echo "ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}"
+          
+          echo "Checking IAM Permissions..."
+          aws sts get-caller-identity
+
+      - name: Build and push Spring Boot image    # Spring Boot 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          outputs: type=registry  # 로컬에 이미지를 생성하지 않고 레지스트리로만 출력
+          load: false  # 로컬에 이미지를 로드하지 않음
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          provenance: false  # 불필요한 메타데이터 생성 방지
+
+      # EC2 직접 배포 대신 Elastic Beanstalk 배포로 변경
+      - name: Clean up old versions
+        run: |
+          # 최신 5개 버전만 유지
+          versions=$(aws elasticbeanstalk describe-application-versions \
+            --application-name ${{ env.EB_APP_NAME }} \
+            --max-items 100 \
+            --query 'ApplicationVersions[*].[VersionLabel,DateUpdated]' \
+            --output text | sort -k2 -r | tail -n +6 | cut -f1)
+
+          for version in $versions; do
+            aws elasticbeanstalk delete-application-version \
+              --application-name ${{ env.EB_APP_NAME }} \
+              --version-label "$version" \
+              --delete-source-bundle \
+              --force-delete || true
+          done
+
+      - name: Generate deployment package
+        run: |
+          # 임시 디렉토리 생성
+          TEMP_DIR=$(mktemp -d)
+          cd $TEMP_DIR
+          
+          # docker-compose.yml 생성
+          cat > docker-compose.yml << EOF
+          version: '3.8'
+          
+          services:
+            spring-app:
+              image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+              container_name: spring-app
+              ports:
+                - "8080:8080"
+              env_file:
+                - .env
+              volumes:
+                - /var/log/eb-docker/containers/app:/app/logs
+              networks:
+                - app-network
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 5
+                start_period: 60s
+              deploy:
+                resources:
+                  limits:
+                    memory: 512M
+              restart: unless-stopped
+          
+          networks:
+            app-network:
+              name: app-network
+              driver: bridge
+          EOF
+          
+          # .env 파일 생성
+          cat > .env << EOF
+          ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
+          SPRING_PROFILES_ACTIVE=prod
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
+          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}
+          TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+          TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}
+          TOSS_SUCCESS_URL=${{ secrets.TOSS_SUCCESS_URL }}
+          TOSS_FAIL_URL=${{ secrets.TOSS_FAIL_URL }}
+          TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
+          USER_NAME=${{ secrets.USER_NAME }}
+          USER_PASSWORD=${{ secrets.USER_PASSWORD }}
+          EOF
+          
+          # docker-compose 실행 스크립트 생성
+          cat > start-application.sh << EOF
+          #!/bin/bash
+          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          docker-compose down --remove-orphans
+          docker-compose up -d
+          EOF
+          chmod +x start-application.sh
+          
+          # 필요한 파일들 복사
+          cp -r $GITHUB_WORKSPACE/.ebextensions .
+          cp -r $GITHUB_WORKSPACE/.elasticbeanstalk .  
+          
+          # 배포 패키지 생성
+          zip -r $GITHUB_WORKSPACE/deploy.zip \
+            docker-compose.yml \
+            .env \
+            start-application.sh \
+            .ebextensions/* \
+            .elasticbeanstalk/*
+          
+          # 임시 디렉토리 정리
+          cd $GITHUB_WORKSPACE
+          rm -rf $TEMP_DIR
+          
+          # 배포 패키지 내용 확인
+          unzip -l deploy.zip
+
+      - name: Check environment status
+        run: |
+          max_attempts=30
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            status=$(aws elasticbeanstalk describe-environments \
+              --environment-names ${{ env.EB_ENV_NAME }} \
+              --query 'Environments[0].Status' \
+              --output text)
+
+            if [ "$status" = "Ready" ]; then
+              echo "Environment is ready for deployment"
+              break
+            fi
+
+            echo "Environment status is $status. Waiting... (Attempt $attempt/$max_attempts)"
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+
+          if [ $attempt -gt $max_attempts ]; then
+            echo "Environment did not become ready within the timeout period"
+            exit 1
+          fi
+
+      - name: Deploy to AWS Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ env.EB_APP_NAME }}
+          environment_name: ${{ env.EB_ENV_NAME }}
+          version_label: ${{ github.sha }}
+          region: ${{ env.AWS_REGION }}
+          deployment_package: deploy.zip
+          wait_for_deployment: true
+          use_existing_version_if_available: false
+
+      # 배포 후 헬스체크
+      - name: Health check
+        run: |
+          echo "Waiting for deployment to complete..."
+          # 배포 완료 대기 시간 증가
+          sleep 60
+          
+          # Elastic Beanstalk 환경 URL 가져오기
+          EB_ENV_URL=$(aws elasticbeanstalk describe-environments \
+            --environment-names ${{ env.EB_ENV_NAME }} \
+            --query 'Environments[0].CNAME' \
+            --output text)
+          
+          echo "Checking health at: http://${EB_ENV_URL}/actuator/health"
+          
+          # 최대 5번 재시도
+          for i in {1..5}
+          do
+            response=$(curl -s -o /dev/null -w "%{http_code}" "http://${EB_ENV_URL}/actuator/health" || echo "failed")
+            if [ "$response" = "200" ]; then
+              echo "Health check successful!"
+              exit 0
+            fi
+            echo "Attempt $i: Health check failed with status: $response"
+            sleep 30
+          done
+          
+          echo "Health check failed after 5 attempts"
+          
+          # 로그 확인
+          aws elasticbeanstalk describe-environments \
+            --environment-names ${{ env.EB_ENV_NAME }} \
+            --query 'Environments[0].Health' \
+            --output text
+          
+          # 최근 이벤트 확인
+          aws elasticbeanstalk describe-events \
+            --environment-name ${{ env.EB_ENV_NAME }} \
+            --max-items 10
+          
+          exit 1

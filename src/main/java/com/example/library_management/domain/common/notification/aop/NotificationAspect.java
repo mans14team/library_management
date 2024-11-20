@@ -2,6 +2,7 @@ package com.example.library_management.domain.common.notification.aop;
 
 import com.example.library_management.domain.bookRental.dto.BookRentalRequestDto;
 import com.example.library_management.domain.bookRental.dto.BookRentalResponseDto;
+import com.example.library_management.domain.common.notification.dto.NotificationRequestDto;
 import com.example.library_management.domain.common.notification.service.NotificationService;
 import com.example.library_management.domain.user.entity.User;
 import com.example.library_management.domain.user.exception.NotFoundUserException;
@@ -39,10 +40,11 @@ public class NotificationAspect {
         String email = user.getEmail();
         String message = "안녕하세요! " + user.getUserName() + "님 책 대여가 완료되었습니다! ";
 
-        notificationService.sendEmail(email, message);
+        // NotificationRequestDto를 통해 알림 요청
+        NotificationRequestDto requestDto = new NotificationRequestDto(userId, message);
+        notificationService.createNotification(requestDto);
 
         log.info("대여 알림 전송 완료 ! :{}", email);
-
     }
 
     @AfterThrowing(pointcut = "serviceLayer(bookRentalRequestDto,userDetails)", throwing = "ex", argNames = "ex,bookRentalRequestDto,userDetails")
@@ -65,7 +67,5 @@ public class NotificationAspect {
             //도서관 관리자 이메일로 전송
             notificationService.sendEmail(adminUserEmail, message);
             log.info("도서관 관리자에게 예외 메시지 전달 완료 : {}", adminUserEmail);
-
-
     }
 }

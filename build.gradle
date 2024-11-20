@@ -73,6 +73,10 @@ dependencies {
     // health check
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
     // spring batch
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     testImplementation 'org.springframework.batch:spring-batch-test'

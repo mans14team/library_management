@@ -38,6 +38,27 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         default_batch_fetch_size: 100
 
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${KAKAO_REDIRECT_URL}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: kakao
+            scope:
+              - profile_nickname
+              - account_email
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 jwt:
   secret.key: ${JWT_SECRET_KEY}
 
@@ -56,18 +77,6 @@ toss:
   fail-url: ${TOSS_FAIL_URL}
   api:
     base-url: ${TOSS_BASE_URL}
-
-mail:
-  host: smtp.gmail.com
-  port: 587
-  username: ${USER_NAME}
-  password: ${USER_PASSWORD}
-  properties:
-    mail:
-      smtp:
-        auth: true
-        starttls:
-          enable: true
 
 custom:
   active-months: 4,5,6,7

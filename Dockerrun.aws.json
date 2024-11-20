@@ -1,0 +1,20 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": 8080,
+      "HostPort": 8080
+    }
+  ],
+  "Volumes": [
+    {
+      "HostDirectory": "/var/log/eb-docker/containers/app",
+      "ContainerDirectory": "/app/logs"
+    }
+  ],
+  "Logging": "/var/log/eb-docker/containers/app"
+}

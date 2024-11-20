@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
         //별점에 단일 인덱스 적용,bookid와 별점 복한 인덱스 적용
         name = "review",
         indexes = {
-                @Index(name = "idx_review_star", columnList = "reviewStar"),
                 @Index(name = "idx_book_review_star", columnList = "book_id,reviewStar")
         }
 )

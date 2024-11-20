@@ -144,13 +144,21 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           REDIS_HOST=${{ secrets.REDIS_HOST }}
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
           JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
           OWNER_TOKEN=${{ secrets.OWNER_TOKEN }}
+          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}
           TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
           TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}
           TOSS_SUCCESS_URL=${{ secrets.TOSS_SUCCESS_URL }}
           TOSS_FAIL_URL=${{ secrets.TOSS_FAIL_URL }}
           TOSS_BASE_URL=${{ secrets.TOSS_BASE_URL }}
+          USER_NAME=${{ secrets.USER_NAME }}
+          USER_PASSWORD=${{ secrets.USER_PASSWORD }}
           EOF
           
           # docker-compose 실행 스크립트 생성

@@ -33,6 +33,13 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: 5671 # SSL 사용시 5671, 미사용시 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    ssl:
+      enabled: true
 
   jpa:
     hibernate:
@@ -119,6 +126,14 @@ toss:
   fail-url: ${TOSS_FAIL_URL}
   api:
     base-url: ${TOSS_BASE_URL}
+
+rabbitmq:
+  queue:
+    email: notification.email
+  exchange:
+    notification: notification.exchange
+  routing:
+    email: notification.email.routing
 
 custom:
   active-months: 4,5,6,7,11

@@ -28,6 +28,11 @@ spring:
           max-idle: 8
           min-idle: 2
           max-wait: -1ms
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: 5671 # SSL 사용시 5671, 미사용시 5672
@@ -131,4 +136,4 @@ rabbitmq:
     email: notification.email.routing
 
 custom:
-  active-months: 4,5,6,7
+  active-months: 4,5,6,7,11

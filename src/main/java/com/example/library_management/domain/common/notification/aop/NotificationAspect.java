@@ -57,15 +57,19 @@ public class NotificationAspect {
 
             User user = userRepository.findByUserName(userName).orElseThrow(NotFoundUserException::new);
 
-            String adminUserEmail = user.getEmail();
             String message = new StringBuilder()
                     .append("안녕하세요 도서관 관리자님.\n")
                     .append("대여 알림 송신 중 예외가 발생했습니다.\n")
                     .append("문제를 해결하기 위해 개발자에게 문의해주세요.")
                     .toString();
 
-            //도서관 관리자 이메일로 전송
-            notificationService.sendEmail(adminUserEmail, message);
-            log.info("도서관 관리자에게 예외 메시지 전달 완료 : {}", adminUserEmail);
+        // NotificationRequestDto를 통해 알림 요청
+        NotificationRequestDto requestDto = new NotificationRequestDto(user.getId(), message);
+        try {
+            notificationService.createNotification(requestDto);
+            log.info("도서관 관리자에게 예외 메시지 전달 완료 : {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("관리자 알림 전송 실패: {}", e.getMessage(), e);
+        }
     }
 }

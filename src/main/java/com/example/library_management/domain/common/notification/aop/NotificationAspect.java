@@ -51,7 +51,6 @@ public class NotificationAspect {
                                        UserDetails userDetails) {
         log.error("대여 알림 송신 중 예외 발생 ! :{},요청한 userId:{},도서관 관리자 계정:{}", ex.getMessage(), bookRentalRequestDto.getUserId(), userDetails.getUsername(), ex);
 
-        try {
             String userName = userDetails.getUsername();
 
             User user = userRepository.findByUserName(userName).orElseThrow(NotFoundUserException::new);
@@ -66,10 +65,7 @@ public class NotificationAspect {
             //도서관 관리자 이메일로 전송
             notificationService.sendEmail(adminUserEmail, message);
             log.info("도서관 관리자에게 예외 메시지 전달 완료 : {}", adminUserEmail);
-        } catch (Exception emailException) {
-            // 이메일 전송 실패시 로그 작성
-            log.error("관리자에게 이메일 송신 중 추가 에러 발생 : {}", emailException.getMessage(), emailException);
-        }
+
 
     }
 }

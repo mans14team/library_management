@@ -3,4 +3,4 @@ spring:
     name: library_management
 
   profiles:
-    active: dev
+    active: prod

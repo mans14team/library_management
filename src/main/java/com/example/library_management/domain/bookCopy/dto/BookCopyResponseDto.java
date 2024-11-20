@@ -1,7 +1,6 @@
 package com.example.library_management.domain.bookCopy.dto;
 
 
-import com.example.library_management.domain.bookCopy.entity.BookCopy;
 import lombok.Getter;
 import lombok.Setter;
 

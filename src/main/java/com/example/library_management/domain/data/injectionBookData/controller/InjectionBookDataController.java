@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class InjectionBookDataController {
     private final InjectionBookDataService injectionBookDataService;
 
-    @PostMapping("/bookData/{json}")
-    public String importData(@PathVariable String json, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    @PostMapping("/bookData")
+    public String importData(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
-            injectionBookDataService.injectionBookData(json, userDetails);
+            injectionBookDataService.injectionBookData(userDetails);
             return "success";
         } catch (IOException e) {
             return "error" + e.getMessage();

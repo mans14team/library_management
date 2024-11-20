@@ -1,6 +1,9 @@
 package com.example.library_management.global.config;
 
 import com.example.library_management.global.jwt.JwtUtil;
+import com.example.library_management.global.oauth.handler.OAuth2LoginFailureHandler;
+import com.example.library_management.global.oauth.handler.OAuth2LoginSuccessHandler;
+import com.example.library_management.global.oauth.service.CustomOAuth2UserService;
 import com.example.library_management.global.security.JwtAuthenticationFilter;
 import com.example.library_management.global.security.JwtAuthorizationFilter;
 import com.example.library_management.global.security.UserDetailsServiceImpl;
@@ -13,8 +16,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -32,11 +33,9 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -71,6 +70,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 
+        // OAuth2 로그인 설정 추가
+        http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userService(customOAuth2UserService)
+                )
+                .successHandler(oAuth2LoginSuccessHandler)
+                .failureHandler(oAuth2LoginFailureHandler)
+        );
+
         // 필터 관리
         http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -89,8 +97,8 @@ public class SecurityConfig {
         )); // 허용할 출처
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowCredentials(true); // 쿠키와 인증 정보를 허용
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type")); // 허용할 헤더 설정
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "RefreshToken"));
+        configuration.setExposedHeaders(List.of("Authorization", "RefreshToken"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정

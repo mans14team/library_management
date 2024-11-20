@@ -26,7 +26,7 @@ public class Book {
     @Column(nullable = false, unique = true)
     private String isbn;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String bookTitle;
 
     private Long bookPublished;

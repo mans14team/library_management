@@ -148,6 +148,7 @@ LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스�
 
 <details>
 <summary><b>🔹 리뷰 조회를 하며 생겼던 트러블 슈팅</b></summary>
+  
 ### 문제 인식
 - QueryDsl로 작성한 리뷰 조회에서 bookId에 대한 조건을 넣어 실행시켰더니 NullPointerException 발생
 ### 해결방안

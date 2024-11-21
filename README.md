@@ -16,7 +16,14 @@ LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스�
 
 ## 3. KEY SUMMARY
 ### 🔷 성능 개선
+- 메시지 송신 방법 동기-> 비동기방식으로 변경
+### 개선 전
+![image](https://github.com/user-attachments/assets/17353b6d-6ff4-4e3e-9b07-e3c7f6a0d4ee)
 
+### 개선 후
+![image](https://github.com/user-attachments/assets/3b6d6462-64b7-4863-8add-52ce03b27583)
+
+- 응답 시간이 크게 줄어들어 성능이 약 10배 개선된 것을 확인 할 수 있었습니다.
 ### 🔷 기술적 성과
 - Redis를 활용한 캐싱 시스템 구현
 - AWS 인프라 기반 자동화된 배포 환경 구축
@@ -73,6 +80,15 @@ LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스�
 
 <details>
 <summary><b>🔹 스케줄러를 관리하는 방법 의사결정 과정</b></summary>
+### 배경
+- dockerImage를 사용하여 서버를 증축한다고 할 때 스케줄러가 복제되는 문제가 생겨 동시성 제어 문제가 발생할거라 생각하게 됨
+### 선택지
+- 서버를 2개로 나누어 관리(한정적인 비용과 구현되어 있던 기능들이 많이 없었기 때문에 비효율적이라판단
+- redisson 분산락을 사용하기(동시적으로 접근을 못하게 만들기 때문에 적합하다 판단)
+### tryLock(),Lock() 중 Lock()을 선택한 이유
+- tryLock()은 락을 걸어준 시간만큼 락이 걸려있다가 시간이 지나면 작업이 끝나지 않았어도 락이 해제되는 문제가 발생
+- 따라서 Lock()메서드를 사용
+- lock()메서드는 시간이 지났는데 작업이 끝나지 않았다면 락을 30초씩 연장해주고 작업이 끝나면 그때 락을 해제 이 때 다른 쓰레드가 접근하려한다면 블로킹하여 무한대기를 시킴
 </details>
 
 <details>
@@ -131,6 +147,15 @@ LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스�
 
 <details>
 <summary><b>🔹 리뷰 조회를 하며 생겼던 트러블 슈팅</b></summary>
+### 문제 인식
+- QueryDsl로 작성한 리뷰 조회에서 bookId에 대한 조건을 넣어 실행시켰더니 NullPointerException 발생
+### 해결방안
+- `log`를 찍어 controller와 service코드에서 확인 결과 서비스 코드에서 에러 발생
+- 코드 분석 결과 `reviewStar(int)=1`을 `래퍼클래스(Integer)=null`과 비교를하고 있어서 NullPointerException 발생
+- 원시타입은 Null 값을 처리할 수 가없음 따라서 NullPointerException 발생
+### 해결완료
+- Null 값이 아닐 때 별점 값을 검증하는 로직이 실행될 수 있게 조치 후 애플리케이션 정상 작동
+  
 </details>
 
 <details>

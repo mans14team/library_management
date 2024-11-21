@@ -1,18 +1,19 @@
-# LibMate - 도서관 웹 서비스
+# 📚 LibMate - 도서관 웹 서비스
 ![LibMate_Project_300x150](https://github.com/user-attachments/assets/e5cf22bd-17cb-423a-92c8-d138338b3639)
 
 ## 1. 프로젝트 소개
-LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스로, 동시성 제어와 실시간 알림을 통해 효율적인 도서관 자원 관리를 제공합니다.
+**LibMate**는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스로, **동시성 제어**와 **실시간 알림**을 통해 효율적인 도서관 자원 관리를 제공합니다.
 
-**개발 기간**: 2024.10.21 ~ 2024.11.22
+- **개발 기간**: ⏳ *2024.10.21 ~ 2024.11.22*  
+- **팀원 수**: 👥 *4명*
 
-## 2. 프로젝트 핵심 목표
-- 대규모 트래픽 환경에서 안정적인 도서 예약/대여 시스템 구축
-- 결제 API 활용해 멤버십 구현
-- 실시간 알림을 통한 사용자 경험 개선
-- 동시성 제어 및 캐싱 처리
-- 성능 최적화 및 모니터링 시스템 구축
-- 자동화된 CI-CD 구축
+### ✅ 2. 프로젝트 핵심 목표
+- **📈 안정적인 시스템**: 대규모 트래픽 환경에서 **도서 예약/대여 시스템** 구축  
+- **💳 결제 기능**: Toss API를 활용한 **멤버십 결제 시스템** 구현  
+- **🔔 실시간 알림**: 예약 상태 및 대여 기간 알림 제공  
+- **🔒 동시성 제어**: Redis 및 낙관적 락을 혼합하여 **데이터 정합성 보장**  
+- **⚡ 성능 최적화**: 성능 최적화 및 **모니터링 시스템** 구축 
+- **🔧 CI/CD 구축**: GitHub Actions 및 AWS Elastic Beanstalk을 활용한 **자동화 배포**
 
 ## 3. KEY SUMMARY
 ### 🔷 성능 개선
@@ -31,29 +32,33 @@ LibMate는 도서 대여와 스터디룸 예약 관리를 위한 웹 서비스�
 - RabbitMQ 활용한 알림 시스템 구현
 
 ## 4. 인프라 아키텍처 & 적용 기술
+
 ### Backend
-- Java 17
-- Spring Boot,
-- Spring Security, Batch
-- JPA, JWT, Gradle
+- ![Java](https://img.shields.io/badge/Java-17-007396?logo=java&logoColor=white)  
+- ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0.0-6DB33F?logo=springboot&logoColor=white)  
+- ![Spring Security](https://img.shields.io/badge/Spring%20Security-Active-6DB33F?logo=springsecurity&logoColor=white)  
+- ![Spring Batch](https://img.shields.io/badge/Spring%20Batch-Automation-6DB33F?logo=spring&logoColor=white)  
+- ![JPA](https://img.shields.io/badge/JPA-Persistence-6DB33F?logo=hibernate&logoColor=white)  
+- ![JWT](https://img.shields.io/badge/JWT-Security-000000?logo=jsonwebtokens&logoColor=white)  
+- ![Gradle](https://img.shields.io/badge/Gradle-Build%20Tool-02303A?logo=gradle&logoColor=white)  
 
 ### Database & Cache
-- MySQL
-- Redis
+- ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)  
+- ![Redis](https://img.shields.io/badge/Redis-In%20Memory-DC382D?logo=redis&logoColor=white)  
 
 ### DevOps
-- AWS (Elastic Beanstalk, RDS, ECR, ElastiCache)
-- Docker
-- Github Actions
+- ![AWS](https://img.shields.io/badge/AWS-Elastic%20Beanstalk%2C%20RDS%2C%20ECR%2C%20ElastiCache-232F3E?logo=amazonaws&logoColor=white)  
+- ![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)  
+- ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)  
 
-### cooperation
-- Github
-- Notion
-- Slack
+### Cooperation
+- ![GitHub](https://img.shields.io/badge/GitHub-Version%20Control-181717?logo=github&logoColor=white)  
+- ![Notion](https://img.shields.io/badge/Notion-Documentation-000000?logo=notion&logoColor=white)  
+- ![Slack](https://img.shields.io/badge/Slack-Communication-4A154B?logo=slack&logoColor=white)  
 
-### Rest Api
-- Toss Payment API
-- Kakao Login
+### Rest API
+- ![Toss Payment API](https://img.shields.io/badge/Toss%20Payment%20API-Payment-0055FF?logo=toss&logoColor=white)  
+- ![Kakao Login](https://img.shields.io/badge/Kakao%20Login-Authentication-FFCD00?logo=kakao&logoColor=black) 
 
 ### 인프라 아키텍쳐
 ![image (4)](https://github.com/user-attachments/assets/b82c06a6-8f24-4779-aab9-478f2438d440)

@@ -308,10 +308,6 @@
 </details>
 
 <details>
-<summary><b>🔹 도서 반납 알림, 스터디룸 예약 알림 트러블 슈팅</b></summary>
-</details>
-
-<details>
 <summary><b>🔹 Github .ENV 파일 노출 문제</b></summary>
 
 ### 문제 상황

@@ -66,6 +66,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("auth/**", "/oauth2/**","/error").permitAll()// 로그인, 회원가입 필터 통과
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
@@ -90,10 +91,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "https://library-management.org",
-                "http://library-management.org",
-                "http://Librarymanagement-env.eba-wmdvgwvy.ap-northeast-2.elasticbeanstalk.com"
+                "http://localhost:3000"    // 프론트 연결시 추가 필요
         )); // 허용할 출처
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowCredentials(true); // 쿠키와 인증 정보를 허용

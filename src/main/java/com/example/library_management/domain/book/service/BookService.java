@@ -1,11 +1,10 @@
 package com.example.library_management.domain.book.service;
 
 import com.example.library_management.domain.book.controller.BookController;
-import com.example.library_management.domain.book.dto.BookResponseDto;
-import com.example.library_management.domain.book.dto.BookRequestDto;
-import com.example.library_management.domain.book.dto.BookResponseDtos;
-import com.example.library_management.domain.book.dto.BookUpdateRequestDto;
+import com.example.library_management.domain.book.dto.*;
 import com.example.library_management.domain.book.entity.Book;
+import com.example.library_management.domain.book.dto.SearchParams;
+import com.example.library_management.domain.book.enums.SearchType;
 import com.example.library_management.domain.book.exception.AuthorizedAdminException;
 import com.example.library_management.domain.book.exception.FindBookException;
 import com.example.library_management.domain.book.repository.BookRepository;
@@ -26,6 +25,8 @@ import java.util.List;
 @Transactional
 public class BookService {
     private final BookRepository bookRepository;
+    private final BookSearchService bookSearchService;
+
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
     public Boolean validateUser(UserDetailsImpl userDetails) {
@@ -47,6 +48,9 @@ public class BookService {
         );
 
         Book savedBook = bookRepository.save(book);
+
+        // Elasticsearch에 인덱싱
+        bookSearchService.indexBook(savedBook);
 
         return new BookResponseDto(savedBook);
     }
@@ -73,6 +77,9 @@ public class BookService {
 
         Book savedBook = bookRepository.save(book);
 
+        // Elasticsearch 인덱스 업데이트
+        bookSearchService.indexBook(savedBook);
+
         return new BookResponseDto(savedBook);
     }
 
@@ -86,6 +93,9 @@ public class BookService {
         );
 
         bookRepository.delete(book);
+
+        // BookSearchService를 통해 Elasticsearch 문서 삭제
+        bookSearchService.deleteBookDocument(bookId.toString());
 
         return bookId;
     }
@@ -103,9 +113,19 @@ public class BookService {
         return new BookResponseDto(book);
     }
 
-    public Page<BookResponseDtos> searchBooks(String isbn, String bookTitle, String author, String publisher, List<String> subjects, Pageable pageable) {
-        Page<Book> pagingBooks = bookRepository.searchBooks(isbn, bookTitle, author, publisher, subjects, pageable);
+    public Page<BookResponseDtos> searchBooks(SearchType searchType, SearchParams searchParams, Pageable pageable) {
+        SearchCriteria criteria = SearchCriteria.builder()
+                .searchType(searchType)
+                .isbn(searchParams.getIsbn())
+                .bookTitle(searchParams.getBookTitle())
+                .author(searchParams.getAuthor())
+                .publisher(searchParams.getPublisher())
+                .subjects(searchParams.getSubjects())
+                .searchTerm(searchParams.getSearchTerm())
+                .sortField(searchParams.getSortField())
+                .build();
 
-        return pagingBooks.map(BookResponseDtos::new);
+        // Elasticsearch를 통한 검색
+        return bookSearchService.search(criteria, pageable);
     }
 }

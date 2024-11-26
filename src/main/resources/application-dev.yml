@@ -21,6 +21,9 @@ spring:
       host: ${REDIS_HOST}
       port: 6379
       password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: false
+      timeout: 30000
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: 5672
@@ -28,6 +31,9 @@ spring:
     password: ${RABBITMQ_PASSWORD}
     ssl:
       enabled: false
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
   batch:
     jdbc:
       initialize-schema: always

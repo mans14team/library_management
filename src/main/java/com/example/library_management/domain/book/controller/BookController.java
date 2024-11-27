@@ -6,6 +6,7 @@ import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.dto.BookUpdateRequestDto;
 import com.example.library_management.domain.book.dto.SearchParams;
 import com.example.library_management.domain.book.enums.SearchType;
+import com.example.library_management.domain.book.service.BookSearchService;
 import com.example.library_management.domain.book.service.BookService;
 import com.example.library_management.global.config.ApiResponse;
 import com.example.library_management.global.security.UserDetailsImpl;
@@ -29,6 +30,7 @@ import java.util.List;
 @Slf4j
 public class BookController {
     private final BookService bookService;
+    private final BookSearchService bookSearchService;
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -147,5 +149,15 @@ public class BookController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(bookService.searchBooks(SearchType.SUBJECT, searchParams, pageable)));
+    }
+
+    /**
+     * Elasticsearch 동기화 API
+     * MySQL의 도서 데이터를 Elasticsearch와 동기화합니다.
+     */
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<String>> syncBooks(){
+        return ResponseEntity.ok(ApiResponse.success(bookSearchService.syncBooks()));
     }
 }

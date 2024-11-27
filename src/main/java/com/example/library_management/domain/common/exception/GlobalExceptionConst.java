@@ -16,6 +16,8 @@ public enum GlobalExceptionConst {
     INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "결제 금액이 유효하지 않습니다."),
     INVALID_PAYMENT_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 결제 요청입니다."),
     BILLING_KEY_REGISTRATION_ERROR(HttpStatus.BAD_REQUEST, "잘못된 빌링키 발급 요청입니다."),
+    ELASTICSEARCH_INVALID_QUERY(HttpStatus.BAD_REQUEST, "잘못된 검색 조건입니다."),
+    ELASTICSEARCH_INVALID_SORT(HttpStatus.BAD_REQUEST, "잘못된 정렬 조건입니다."),
 
     // 상태코드 401
     UNAUTHORIZED_PASSWORD(HttpStatus.UNAUTHORIZED, " 비밀번호를 확인해주세요."),
@@ -70,7 +72,12 @@ public enum GlobalExceptionConst {
 
     // 상태코드 500
     PAYMENT_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 서버 오류가 발생했습니다."),
-    PAYMENT_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다.");
+    PAYMENT_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다."),
+    ELASTICSEARCH_INDEX_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "도서 인덱싱 중 오류가 발생했습니다."),
+    ELASTICSEARCH_SYNC_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "도서 데이터 동기화 중 오류가 발생했습니다."),
+    ELASTICSEARCH_SEARCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "도서 검색 중 오류가 발생했습니다."),
+    ELASTICSEARCH_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "도서 문서 삭제 중 오류가 발생했습니다."),
+    ELASTICSEARCH_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ElasticSearch 연결 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

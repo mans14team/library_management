@@ -22,12 +22,22 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
     Page<BookDocument> findByTitleFuzzy(String title, Pageable pageable);
 
     // 복합 검색 (제목, 저자, 출판사, 주제)
-    @Query("{\"bool\": {\"should\": [" +
-            "{\"match\": {\"bookTitle\": \"?0\"}}," +
-            "{\"match\": {\"authors\": \"?1\"}}," +
-            "{\"match\": {\"publishers\": \"?2\"}}," +
-            "{\"match\": {\"subjects\": \"?3\"}}" +
-            "], \"minimum_should_match\": 1}}")
+    @Query("""
+            {
+              "bool": {
+                "should": [
+                  {"match": {"bookTitle": {"query": "?0", "boost": 2.0}}},
+                  {"match": {"authors": {"query": "?1", "boost": 1.5}}},
+                  {"match": {"publishers": {"query": "?2"}}},
+                  {"match": {"subjects": {"query": "?3"}}}
+                ],
+                "minimum_should_match": 1,
+                "filter": [
+                  {"bool": {"must": []}}
+                ]
+              }
+            }
+            """)
     Page<BookDocument> searchBooks(String title, String author, String publisher, String subject, Pageable pageable);
 
     // 정확한 주제 검색

@@ -72,6 +72,18 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+logging:
+  file:
+    name: logs/library-management.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.example.library_management: DEBUG
+    org.elasticsearch: INFO
+    org.springframework.data.elasticsearch: DEBUG
+
 jwt:
   secret.key: ${JWT_SECRET_KEY}
 

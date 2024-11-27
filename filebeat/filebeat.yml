@@ -1,0 +1,16 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/library-management.log
+    fields:
+      type: library-log
+    multiline:
+      pattern: '^\d{4}-\d{2}-\d{2}'
+      negate: true
+      match: after
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+logging.level: debug

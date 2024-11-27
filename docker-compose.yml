@@ -16,6 +16,24 @@ services:
     networks:
       - library-network
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.10
+    container_name: library_logstash
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+    networks:
+      - library-network
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.10
     container_name: library_kibana
@@ -25,6 +43,25 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    networks:
+      - library-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.10
+    container_name: library_filebeat
+    user: root
+    environment:
+      - setup.kibana.host=kibana:5601
+      - output.logstash.hosts=["logstash:5044"]
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/var/log/app:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false  # 권한 체크를 비활성화
+    depends_on:
+      - elasticsearch
+      - logstash
     networks:
       - library-network
 

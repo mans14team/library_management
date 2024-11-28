@@ -72,6 +72,7 @@ public class SecurityConfig {
                                 "/library/books/search/fuzzy",
                                 "/library/books/search/all",
                                 "/library/books/search/subjects").permitAll()
+                        .requestMatchers("/library/books/autocomplete").permitAll()
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 

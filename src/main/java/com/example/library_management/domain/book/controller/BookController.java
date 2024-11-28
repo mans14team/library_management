@@ -1,10 +1,6 @@
 package com.example.library_management.domain.book.controller;
 
-import com.example.library_management.domain.book.dto.BookResponseDto;
-import com.example.library_management.domain.book.dto.BookRequestDto;
-import com.example.library_management.domain.book.dto.BookResponseDtos;
-import com.example.library_management.domain.book.dto.BookUpdateRequestDto;
-import com.example.library_management.domain.book.dto.SearchParams;
+import com.example.library_management.domain.book.dto.*;
 import com.example.library_management.domain.book.enums.SearchType;
 import com.example.library_management.domain.book.service.BookSearchService;
 import com.example.library_management.domain.book.service.BookService;
@@ -159,5 +155,16 @@ public class BookController {
     @PostMapping("/sync")
     public ResponseEntity<ApiResponse<String>> syncBooks(){
         return ResponseEntity.ok(ApiResponse.success(bookSearchService.syncBooks()));
+    }
+
+    /**
+     * 도서 제목과 저자 자동완성 API
+     * @param prefix 검색할 접두어
+     * @param size 반환할 제안 수
+     * @return 자동완성 제안 목록
+     */
+    @GetMapping("/autocomplete")
+    public ResponseEntity<ApiResponse<List<SuggestResponse>>> autoComplete(@RequestParam String prefix, @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(ApiResponse.success(bookSearchService.autoComplete(prefix, size)));
     }
 }

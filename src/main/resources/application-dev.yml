@@ -34,6 +34,13 @@ spring:
   elasticsearch:
     rest:
       uris: http://localhost:9200
+      connection-timeout: 5000
+      socket-timeout: 3000
+      max-retries: 3
+      retry-on-conflict: 3
+    bulk:
+      batch-size: 1000
+      concurrent-requests: 2
   batch:
     jdbc:
       initialize-schema: always
@@ -83,6 +90,8 @@ logging:
     com.example.library_management: DEBUG
     org.elasticsearch: INFO
     org.springframework.data.elasticsearch: DEBUG
+    org.elasticsearch.client.RestClient: INFO
+    org.springframework.data.elasticsearch.client.WIRE: TRACE
 
 jwt:
   secret.key: ${JWT_SECRET_KEY}

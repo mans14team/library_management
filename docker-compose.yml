@@ -8,20 +8,36 @@ services:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - cluster.name=library-cluster
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    user: elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./docker/elasticsearch/books-settings.json:/usr/share/elasticsearch/config/books-settings.json
     networks:
       - library-network
+    command: >
+      /bin/bash -c "
+      bin/elasticsearch-plugin install analysis-nori || true;
+      elasticsearch"
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.10
     container_name: library_logstash
     volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./docker/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./docker/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
       - "5044:5044"
       - "5000:5000/tcp"
@@ -54,7 +70,7 @@ services:
       - setup.kibana.host=kibana:5601
       - output.logstash.hosts=["logstash:5044"]
     volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./logs:/var/log/app:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro

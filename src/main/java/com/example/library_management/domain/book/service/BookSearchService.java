@@ -1,7 +1,12 @@
 package com.example.library_management.domain.book.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.CompletionSuggestOption;
+import co.elastic.clients.elasticsearch.core.search.Suggestion;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.dto.SearchCriteria;
+import com.example.library_management.domain.book.dto.SuggestResponse;
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.entity.BookDocument;
 import com.example.library_management.domain.book.exception.BookException;
@@ -18,7 +23,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,7 @@ import java.util.List;
 public class BookSearchService {
     private final BookSearchRepository bookSearchRepository;
     private final BookRepository bookRepository;
+    private final ElasticsearchClient elasticsearchClient;
 
     // Elasticsearch에 도서 정보를 인덱싱
     public void indexBook(Book book) {
@@ -134,6 +143,120 @@ public class BookSearchService {
             return new BookResponseDtos(book);
         } catch (NumberFormatException e) {
             throw new BookException(GlobalExceptionConst.ELASTICSEARCH_SEARCH_ERROR);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<SuggestResponse> autoComplete(String prefix, int size) {
+        if (prefix == null || prefix.length() < 2) {
+            return Collections.emptyList();
+        }
+
+        try {
+            log.info("[자동완성 검색 시작] 접두어: {}, 요청 크기: {}", prefix, size);
+
+            // 검색 요청 생성
+            SearchResponse<BookDocument> response = elasticsearchClient.search(s -> s
+                            .index("books")
+                            .suggest(suggest -> suggest
+                                    // 제목 자동완성
+                                    .suggesters("title_suggest", titleSuggester -> titleSuggester
+                                            .prefix(prefix)
+                                            .completion(c -> c
+                                                    .field("titleSuggest")
+                                                    .skipDuplicates(false)
+                                                    .size(size * 5)
+                                                    .fuzzy(f -> f
+                                                            .fuzziness("AUTO")
+                                                            .transpositions(true)
+                                                            .minLength(2) // 최소 길이 2로 수정
+                                                            .prefixLength(1)
+                                                    )
+                                            )
+                                    )
+                                    // 저자 자동완성
+                                    .suggesters("author_suggest", authorSuggester -> authorSuggester
+                                            .prefix(prefix)
+                                            .completion(c -> c
+                                                    .field("authorSuggest")
+                                                    .skipDuplicates(false)
+                                                    .size(size * 5)
+                                                    .fuzzy(f -> f
+                                                            .fuzziness("AUTO")
+                                                            .transpositions(true)
+                                                            .minLength(2) // 최소 길이 2로 수정
+                                                            .prefixLength(1)
+                                                    )
+                                            )
+                                    )
+                            ),
+                    BookDocument.class
+            );
+
+            List<SuggestResponse> suggestions = new ArrayList<>();
+
+            // 제목 제안 처리
+            var titleSuggestions = response.suggest().get("title_suggest");
+            if (titleSuggestions != null && !titleSuggestions.isEmpty()) {
+                // 모든 suggestion을 처리하도록 수정
+                log.info("제목 suggestion 수: {}", titleSuggestions.size());
+                for (var suggestion : titleSuggestions) {
+                    suggestion.completion().options().forEach(option -> {
+                        BookDocument source = option.source();
+                        if (source != null) {
+                            suggestions.add(new SuggestResponse(
+                                    option.text(),
+                                    "TITLE",
+                                    option.score(),
+                                    source.getBookTitle()
+                            ));
+                        }
+                    });
+                }
+            }
+
+            // 저자 제안 처리
+            var authorSuggestions = response.suggest().get("author_suggest");
+            if (authorSuggestions != null && !authorSuggestions.isEmpty()) {
+                // 모든 suggestion을 처리하도록 수정
+                log.info("제목 suggestion 수: {}", authorSuggestions.size());
+                for (var suggestion : authorSuggestions) {
+                    suggestion.completion().options().forEach(option -> {
+                        BookDocument source = option.source();
+                        if (source != null) {
+                            suggestions.add(new SuggestResponse(
+                                    option.text(),
+                                    "AUTHOR",
+                                    option.score(),
+                                    String.join(", ", source.getAuthors())
+                            ));
+                        }
+                    });
+                }
+            }
+
+            // 결과 정렬 및 중복 제거
+            var result = suggestions.stream()
+                    .distinct()
+                    .sorted((s1, s2) -> {
+                        if (s1.getType().equals("TITLE") && s2.getType().equals("AUTHOR")) {
+                            return -1; // TITLE을 우선 정렬
+                        } else if (s1.getType().equals("AUTHOR") && s2.getType().equals("TITLE")) {
+                            return 1;
+                        }
+                        return Double.compare(s2.getScore(), s1.getScore());
+                    })
+                    .limit(size)
+                    .collect(Collectors.toList());
+
+            log.info("[자동완성 검색 완료] 접두어: {}, 검색된 결과 수: {}", prefix, result.size());
+
+            // 결과 정렬 및 중복 제거
+            return result;
+        } catch (Exception e) {
+            log.error("[자동완성 검색 실패] 접두어: {}, 에러: {}", prefix, e.getMessage(), e);
+            // 검색 실패 시 빈 결과 반환 (사용자 경험 향상)
+            return Collections.emptyList();
         }
     }
 

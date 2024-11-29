@@ -4,16 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class SuggestResponse {
-    private String text;
-    private String type; // TITLE, AUTHOR 등 구분
-    private Double score;
-    private String originalText;  // 원본 텍스트 (제목 또는 저자)
+    private String text; // 검색어와 매칭된 텍스트
+    private String type;  // TITLE, AUTHOR 등 구분
+    private Double score; // 검색 점수
+    private String bookTitle;  // 책 제목
+    private List<String> authors;   // 저자 목록
 
     @Override
     public boolean equals(Object o) {
@@ -22,11 +24,13 @@ public class SuggestResponse {
         SuggestResponse that = (SuggestResponse) o;
         return Objects.equals(text, that.text) &&
                 Objects.equals(type, that.type) &&
-                Objects.equals(originalText, that.originalText);
+                Objects.equals(score, that.score) &&
+                Objects.equals(bookTitle, that.bookTitle) &&
+                Objects.equals(authors, that.authors);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(text, type, originalText);
+        return Objects.hash(text, type, score, bookTitle, authors);
     }
 }

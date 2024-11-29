@@ -2,8 +2,6 @@ package com.example.library_management.domain.book.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.CompletionSuggestOption;
-import co.elastic.clients.elasticsearch.core.search.Suggestion;
 import com.example.library_management.domain.book.dto.BookResponseDtos;
 import com.example.library_management.domain.book.dto.SearchCriteria;
 import com.example.library_management.domain.book.dto.SuggestResponse;
@@ -208,7 +206,8 @@ public class BookSearchService {
                                     option.text(),
                                     "TITLE",
                                     option.score(),
-                                    source.getBookTitle()
+                                    source.getBookTitle(),
+                                    source.getAuthors()
                             ));
                         }
                     });
@@ -228,7 +227,8 @@ public class BookSearchService {
                                     option.text(),
                                     "AUTHOR",
                                     option.score(),
-                                    String.join(", ", source.getAuthors())
+                                    source.getBookTitle(),
+                                    source.getAuthors()
                             ));
                         }
                     });

@@ -8,7 +8,6 @@ import com.example.library_management.domain.book.dto.SuggestResponse;
 import com.example.library_management.domain.book.entity.Book;
 import com.example.library_management.domain.book.entity.BookDocument;
 import com.example.library_management.domain.book.exception.BookException;
-import com.example.library_management.domain.book.exception.FindBookException;
 import com.example.library_management.domain.book.repository.BookRepository;
 import com.example.library_management.domain.book.repository.BookSearchRepository;
 import com.example.library_management.domain.common.exception.GlobalExceptionConst;
@@ -60,6 +59,9 @@ public class BookSearchService {
                 case FUZZY -> searchByFuzzy(searchCriteria.getBookTitle(), pageable);
                 case COMPREHENSIVE -> searchComprehensive(searchCriteria.getSearchTerm(), pageable);
                 case SUBJECT -> searchBySubjects(searchCriteria.getSubjects(), pageable);
+                case TITLE -> searchByTitle(searchCriteria.getBookTitle(), pageable);
+                case AUTHOR -> searchByAuthor(searchCriteria.getAuthor(), pageable);
+                case PUBLISHER -> searchByPublisher(searchCriteria.getPublisher(), pageable);
                 case DEFAULT -> searchDefault(searchCriteria, pageable);
             };
 
@@ -115,8 +117,41 @@ public class BookSearchService {
                 .map(this::convertToDto);
     }
 
+    // 제목으로 도서 검색
+    private Page<BookResponseDtos> searchByTitle(String title, Pageable pageable) {
+        if (title == null || title.isEmpty()) {
+            throw new BookException(GlobalExceptionConst.ELASTICSEARCH_INVALID_QUERY);
+        }
+        return bookSearchRepository.findByBookTitleContaining(title, pageable)
+                .map(this::convertToDto);
+    }
+
+    // 저자로 도서 검색
+    private Page<BookResponseDtos> searchByAuthor(String author, Pageable pageable) {
+        if (author == null || author.isEmpty()) {
+            throw new BookException(GlobalExceptionConst.ELASTICSEARCH_INVALID_QUERY);
+        }
+        return bookSearchRepository.findByAuthorsContaining(author, pageable)
+                .map(this::convertToDto);
+    }
+
+    // 출판사로 도서 검색
+    private Page<BookResponseDtos> searchByPublisher(String publisher, Pageable pageable) {
+        if (publisher == null || publisher.isEmpty()) {
+            throw new BookException(GlobalExceptionConst.ELASTICSEARCH_INVALID_QUERY);
+        }
+        return bookSearchRepository.findByPublishersContaining(publisher, pageable)
+                .map(this::convertToDto);
+    }
+
     // 기본 검색 조건으로 도서를 검색
     private Page<BookResponseDtos> searchDefault(SearchCriteria criteria, Pageable pageable) {
+        // 모든 검색 조건이 null인 경우 처리
+        if (isAllSearchCriteriaEmpty(criteria)) {
+            log.info("모든 검색 조건이 비어있어 전체 도서를 반환합니다.");
+            return bookSearchRepository.findAll(pageable).map(this::convertToDto);
+        }
+
         String title = criteria.getBookTitle() != null ? criteria.getBookTitle() : "";
         String author = criteria.getAuthor() != null ? criteria.getAuthor() : "";
         String publisher = criteria.getPublisher() != null ? criteria.getPublisher() : "";
@@ -133,17 +168,30 @@ public class BookSearchService {
         ).map(this::convertToDto);
     }
 
+    private boolean isAllSearchCriteriaEmpty(SearchCriteria criteria) {
+        return (criteria.getBookTitle() == null || criteria.getBookTitle().isEmpty()) &&
+                (criteria.getAuthor() == null || criteria.getAuthor().isEmpty()) &&
+                (criteria.getPublisher() == null || criteria.getPublisher().isEmpty()) &&
+                (criteria.getSubjects() == null || criteria.getSubjects().isEmpty()) &&
+                (criteria.getIsbn() == null || criteria.getIsbn().isEmpty()) &&
+                (criteria.getSearchTerm() == null || criteria.getSearchTerm().isEmpty());
+    }
+
     // BookDocument를 BookResponseDtos로 변환
     private BookResponseDtos convertToDto(BookDocument document) {
         try {
-            Book book = bookRepository.findById(Long.valueOf(document.getId()))
-                    .orElseThrow(() -> new FindBookException());
-            return new BookResponseDtos(book);
+            return BookResponseDtos.builder()
+                    .id(Long.valueOf(document.getId()))
+                    .bookTitle(document.getBookTitle())
+                    .authors(document.getAuthors())
+                    .bookPublished(document.getBookPublished())
+                    .build();
         } catch (NumberFormatException e) {
             throw new BookException(GlobalExceptionConst.ELASTICSEARCH_SEARCH_ERROR);
         }
     }
 
+    // 자동완성 기능
     @Transactional(readOnly = true)
     public List<SuggestResponse> autoComplete(String prefix, int size) {
         if (prefix == null || prefix.length() < 2) {
@@ -203,6 +251,7 @@ public class BookSearchService {
                         BookDocument source = option.source();
                         if (source != null) {
                             suggestions.add(new SuggestResponse(
+                                    Long.valueOf(source.getId()),
                                     option.text(),
                                     "TITLE",
                                     option.score(),
@@ -218,12 +267,13 @@ public class BookSearchService {
             var authorSuggestions = response.suggest().get("author_suggest");
             if (authorSuggestions != null && !authorSuggestions.isEmpty()) {
                 // 모든 suggestion을 처리하도록 수정
-                log.info("제목 suggestion 수: {}", authorSuggestions.size());
+                log.info("저자 suggestion 수: {}", authorSuggestions.size());
                 for (var suggestion : authorSuggestions) {
                     suggestion.completion().options().forEach(option -> {
                         BookDocument source = option.source();
                         if (source != null) {
                             suggestions.add(new SuggestResponse(
+                                    Long.valueOf(source.getId()),
                                     option.text(),
                                     "AUTHOR",
                                     option.score(),

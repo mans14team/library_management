@@ -11,6 +11,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SuggestResponse {
+    private Long id;              // 도서 ID 추가
     private String text; // 검색어와 매칭된 텍스트
     private String type;  // TITLE, AUTHOR 등 구분
     private Double score; // 검색 점수
@@ -22,7 +23,8 @@ public class SuggestResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SuggestResponse that = (SuggestResponse) o;
-        return Objects.equals(text, that.text) &&
+        return Objects.equals(id, that.id) &&
+                Objects.equals(text, that.text) &&
                 Objects.equals(type, that.type) &&
                 Objects.equals(score, that.score) &&
                 Objects.equals(bookTitle, that.bookTitle) &&
@@ -31,6 +33,6 @@ public class SuggestResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(text, type, score, bookTitle, authors);
+        return Objects.hash(id, text, type, score, bookTitle, authors);
     }
 }

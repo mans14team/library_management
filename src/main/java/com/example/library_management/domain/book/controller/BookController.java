@@ -69,8 +69,8 @@ public class BookController {
 
     /**
      * 도서 검색 API
-     * @param searchType 검색 유형 (선택적)
-     * @param searchTerm 통합 검색어 (선택적)
+     * @param searchType 검색 유형 (DEFAULT, FUZZY, COMPREHENSIVE, SUBJECT, ISBN)
+     * @param searchTerm 통합 검색어 (전체 검색용)
      * @param isbn ISBN (선택적)
      * @param bookTitle 도서 제목 (선택적)
      * @param author 저자 (선택적)
@@ -100,51 +100,6 @@ public class BookController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(bookService.searchBooks(searchType, searchParams, pageable)));
-    }
-
-    /**
-     * 퍼지 검색 API (오타를 허용하는 검색)
-     */
-    @GetMapping("/search/fuzzy")
-    public ResponseEntity<ApiResponse<Page<BookResponseDtos>>> fuzzySearch(
-            @RequestParam String title,
-            Pageable pageable
-    ) {
-        SearchParams searchParams = SearchParams.builder()
-                .bookTitle(title)
-                .build();
-
-        return ResponseEntity.ok(ApiResponse.success(bookService.searchBooks(SearchType.FUZZY, searchParams, pageable)));
-    }
-
-    /**
-     * 통합 검색 API (모든 필드를 대상으로 검색)
-     */
-    @GetMapping("/search/all")
-    public ResponseEntity<ApiResponse<Page<BookResponseDtos>>> searchAllFields(
-            @RequestParam String searchTerm,
-            Pageable pageable
-    ) {
-        SearchParams searchParams = SearchParams.builder()
-                .searchTerm(searchTerm)
-                .build();
-
-        return ResponseEntity.ok(ApiResponse.success(bookService.searchBooks(SearchType.COMPREHENSIVE, searchParams, pageable)));
-    }
-
-    /**
-     * 주제별 검색 API
-     */
-    @GetMapping("/search/subjects")
-    public ResponseEntity<ApiResponse<Page<BookResponseDtos>>> searchBySubjects(
-            @RequestParam List<String> subjects,
-            Pageable pageable
-    ) {
-        SearchParams searchParams = SearchParams.builder()
-                .subjects(subjects)
-                .build();
-
-        return ResponseEntity.ok(ApiResponse.success(bookService.searchBooks(SearchType.SUBJECT, searchParams, pageable)));
     }
 
     /**

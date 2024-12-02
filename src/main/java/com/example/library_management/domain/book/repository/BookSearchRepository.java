@@ -144,7 +144,7 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
                   {
                     "match": {
                       "authors": {
-                        "query": "?0",
+                        "query": "?0",batch_job_execution
                         "operator": "and"
                       }
                     }

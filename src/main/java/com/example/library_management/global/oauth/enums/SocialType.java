@@ -1,7 +1,8 @@
 package com.example.library_management.global.oauth.enums;
 
 public enum SocialType {
-    KAKAO("kakao");
+    KAKAO("kakao"),
+    NAVER("naver");
 
     private final String registrationId;
 

@@ -5,6 +5,7 @@ import com.example.library_management.domain.user.enums.UserRole;
 import com.example.library_management.domain.user.repository.UserRepository;
 import com.example.library_management.global.oauth.enums.SocialType;
 import com.example.library_management.global.oauth.userInfo.KakaoUserInfo;
+import com.example.library_management.global.oauth.userInfo.NaverUserInfo;
 import com.example.library_management.global.oauth.userInfo.OAuth2UserInfo;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (socialType == SocialType.KAKAO){
             log.info("Kakao OAuth2 User Attributes: {}", oAuth2User.getAttributes());
             userInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        }else if (socialType == SocialType.NAVER) {  // 추가
+            log.info("Naver OAuth2 User Attributes: {}", oAuth2User.getAttributes());
+            userInfo = new NaverUserInfo(oAuth2User.getAttributes());
         }
 
         // 필수 정보 추출

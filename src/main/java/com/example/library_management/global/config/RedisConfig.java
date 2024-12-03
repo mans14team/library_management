@@ -24,6 +24,9 @@ public class RedisConfig {
     @Value("${spring.data.redis.password}")
     private String password;
 
+    @Value("${spring.data.redis.ssl.enabled:false}")
+    private boolean ssl;
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
@@ -31,7 +34,10 @@ public class RedisConfig {
         redisConfig.setPort(redisPort);
         redisConfig.setPassword(password);
 
-        return new LettuceConnectionFactory(redisConfig);
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(redisConfig);
+        factory.setUseSsl(ssl);
+
+        return factory;
     }
     @Bean
     public RedissonClient redissonClient() {
@@ -40,16 +46,16 @@ public class RedisConfig {
 
         // Redis 연결 설정
         config.useSingleServer()
-                .setAddress("redis://" + redisHost + ":" + redisPort)
+                .setAddress((ssl ? "rediss://" : "redis://") + redisHost + ":" + redisPort)
                 .setPassword(password)
                 .setConnectionMinimumIdleSize(1)
                 .setConnectionPoolSize(2)
                 .setRetryAttempts(3)
-                .setRetryInterval(1500)
-                .setDnsMonitoringInterval(5000)
+                .setRetryInterval(3000)
+                .setDnsMonitoringInterval(30000)
                 .setSubscriptionConnectionMinimumIdleSize(1)
                 .setSubscriptionConnectionPoolSize(2)
-                .setTimeout(3000);
+                .setTimeout(30000);
 
         return Redisson.create(config);
     }

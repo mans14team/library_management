@@ -1,57 +1,117 @@
 version: '3.8'
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: library_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - cluster.name=library-cluster
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    user: elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
-      - "80:80"
-    depends_on:
-      app:
-        condition: service_started
-    restart: always
-    networks:
-      - app-network
+      - "9200:9200"
+      - "9300:9300"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-    healthcheck:
-      test: [ "CMD-SHELL", "apk add --no-cache curl && curl -f http://localhost/actuator/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-  app:
-    image: ${DOCKER_USERNAME}/spring-app:${IMAGE_TAG}
-    container_name: spring-app
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./docker/elasticsearch/books-settings.json:/usr/share/elasticsearch/config/books-settings.json
     networks:
-      - app-network
-    healthcheck: # 헬스체크 추가
-      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s    # 애플리케이션 시작 대기 시간
+      - library-network
+    command: >
+      /bin/bash -c "
+      bin/elasticsearch-plugin install analysis-nori || true;
+      elasticsearch"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.10
+    container_name: library_logstash
+    volumes:
+      - ./docker/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./docker/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+    networks:
+      - library-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.10
+    container_name: library_kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - library-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.10
+    container_name: library_filebeat
+    user: root
+    environment:
+      - setup.kibana.host=kibana:5601
+      - output.logstash.hosts=["logstash:5044"]
+    volumes:
+      - ./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/var/log/app:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false  # 권한 체크를 비활성화
+    depends_on:
+      - elasticsearch
+      - logstash
+    networks:
+      - library-network
+
   redis:
-    image: redis:alpine
-    container_name: redis
+    image: redis:6.2
+    container_name: library_redis
+    command: redis-server --requirepass
     ports:
       - "6379:6379"
-    networks:
-      - app-network
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     volumes:
-      - /C/Redis/Redis-7.4.1/redis.conf:/usr/local/etc/redis/redis.conf # redis.conf 파일 마운트
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ] # 커스텀 설정
-networks:
-  app-network:
-    name: app-network
-    driver: bridge
+      - redis-data:/data
+    networks:
+      - library-network
 
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: library_rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=
+      - RABBITMQ_DEFAULT_PASS=
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - library-network
+
+volumes:
+  elasticsearch-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  library-network:
+    driver: bridge
 

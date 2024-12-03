@@ -68,6 +68,11 @@ public class SecurityConfig {
                 authorizeHttpRequests
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("auth/**", "/oauth2/**","/error").permitAll()// 로그인, 회원가입 필터 통과
+                        .requestMatchers("/library/books/search/**",
+                                "/library/books/search/fuzzy",
+                                "/library/books/search/all",
+                                "/library/books/search/subjects").permitAll()
+                        .requestMatchers("/library/books/autocomplete").permitAll()
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 

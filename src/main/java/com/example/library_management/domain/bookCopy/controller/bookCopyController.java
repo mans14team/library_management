@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/books/copies")
+@RequestMapping("/library/books/copies")
 public class bookCopyController {
     private final BookCopyService bookCopyService;
 

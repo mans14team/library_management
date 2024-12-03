@@ -1,6 +1,5 @@
 package com.example.library_management.domain.book.entity;
 
-import com.example.library_management.domain.book.dto.BookRequestDto;
 import com.example.library_management.domain.bookCopy.entity.BookCopy;
 import com.example.library_management.domain.review.entity.Review;
 import jakarta.persistence.*;
@@ -8,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -59,24 +59,34 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
               "bool": {
                 "should": [
                   {
-                    "fuzzy": {
+                    "match": {
                       "bookTitle": {
-                        "value": "?0",
+                        "query": "?0",
                         "fuzziness": "AUTO",
-                        "prefix_length": 2
+                        "operator": "or",
+                        "boost": 2.0
                       }
                     }
                   },
                   {
-                    "fuzzy": {
+                    "match_phrase_prefix": {
+                      "bookTitle": {
+                        "query": "?0",
+                        "boost": 1.5
+                      }
+                    }
+                  },
+                  {
+                    "match": {
                       "bookTitleNgram": {
-                        "value": "?0",
-                        "fuzziness": "AUTO",
-                        "prefix_length": 1
+                        "query": "?0",
+                        "operator": "or",
+                        "boost": 1.0
                       }
                     }
                   }
-                ]
+                ],
+                "minimum_should_match": 1
               }
             }
             """)
@@ -108,7 +118,7 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
                 "must": [
                   {
                     "terms": {
-                      "subjects": "?0"
+                      "subjects.keyword": ?0
                     }
                   }
                 ]
@@ -144,8 +154,18 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
                   {
                     "match": {
                       "authors": {
-                        "query": "?0",batch_job_execution
+                        "query": "?0",
                         "operator": "and"
+                      }
+                    }
+                  }
+                ],
+                "should": [
+                  {
+                    "match_phrase": {
+                      "authors": {
+                        "query": "?0",
+                        "boost": 2.0
                       }
                     }
                   }
@@ -172,19 +192,29 @@ public interface BookSearchRepository extends ElasticsearchRepository<BookDocume
                       "query": "?0",
                       "fields": [
                         "bookTitle^3",
+                        "bookTitle.ngram^2",
                         "authors^2",
                         "publishers",
                         "subjects"
                       ],
-                      "type": "best_fields",
-                      "operator": "and"
+                      "type": "most_fields",
+                      "operator": "or",
+                      "fuzziness": "AUTO"
                     }
                   },
                   {
-                    "term": {
-                      "bookPublished": {
-                        "value": "?0",
+                    "match_phrase_prefix": {
+                      "bookTitle": {
+                        "query": "?0",
                         "boost": 2.0
+                      }
+                    }
+                  },
+                  {
+                    "match_phrase_prefix": {
+                      "authors": {
+                        "query": "?0",
+                        "boost": 1.5
                       }
                     }
                   }

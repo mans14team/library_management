@@ -4,6 +4,7 @@ import com.example.library_management.domain.book.dto.*;
 import com.example.library_management.domain.book.enums.SearchType;
 import com.example.library_management.domain.book.service.BookSearchService;
 import com.example.library_management.domain.book.service.BookService;
+import com.example.library_management.domain.book.service.SearchSuggestionService;
 import com.example.library_management.global.config.ApiResponse;
 import com.example.library_management.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.List;
 public class BookController {
     private final BookService bookService;
     private final BookSearchService bookSearchService;
+    private final SearchSuggestionService searchSuggestionService;
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -121,5 +123,49 @@ public class BookController {
     @GetMapping("/autocomplete")
     public ResponseEntity<ApiResponse<List<SuggestResponse>>> autoComplete(@RequestParam String prefix, @RequestParam(defaultValue = "5") int size){
         return ResponseEntity.ok(ApiResponse.success(bookSearchService.autoComplete(prefix, size)));
+    }
+
+    /**
+     * 연관 검색어 추천 API
+     * @param searchTerm 검색어
+     * @return 추천된 연관 검색어 목록
+     */
+    @GetMapping("/search/related-terms")
+    public ResponseEntity<ApiResponse<List<RelatedSearchResponse>>> getRelatedSearchTerms(@RequestParam String searchTerm){
+        return ResponseEntity.ok(ApiResponse.success(searchSuggestionService.getRelatedSearchTerms(searchTerm)));
+    }
+
+    /**
+     * 도서 선택 기록 API
+     * 사용자가 검색 결과에서 도서를 선택했을 때 호출되어, 검색어와 선택된 도서 간의 관계를 기록합니다.
+     * 이 데이터는 연관 검색어 추천 시스템에서 사용됩니다.
+     *
+     * @param searchTerm 사용자가 입력한 검색어
+     * @param bookId 선택된 도서의 ID
+     * @return 처리 결과
+     */
+    @PostMapping("/search/record-selection")
+    public ResponseEntity<ApiResponse<Void>> recordBookSelection(
+            @RequestParam String searchTerm,
+            @RequestParam Long bookId
+    ) {
+        bookService.recordBookSelection(searchTerm, bookId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 인기 검색어 조회 API
+     * 사용자들이 가장 많이 검색한 검색어를 검색 횟수 순으로 반환합니다.
+     *
+     * @param size 반환할 인기 검색어의 개수 (기본값: 10)
+     * @return 인기 검색어 목록
+     *         - 검색어(term)
+     *         - 검색 점수(score): 검색 횟수 기반
+     */
+    @GetMapping("/search/popular-terms")
+    public ResponseEntity<ApiResponse<List<RelatedSearchResponse>>> getPopularSearchTerms(
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                searchSuggestionService.getPopularSearchTerms(size)));
     }
 }

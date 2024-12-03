@@ -26,6 +26,7 @@ import java.util.List;
 public class BookService {
     private final BookRepository bookRepository;
     private final BookSearchService bookSearchService;
+    private final SearchSuggestionService searchSuggestionService;
 
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
@@ -115,6 +116,17 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public Page<BookResponseDtos> searchBooks(SearchType searchType, SearchParams searchParams, Pageable pageable) {
+        // 검색어 기록
+        if (searchParams.getSearchTerm() != null && !searchParams.getSearchTerm().isEmpty()) {
+            searchSuggestionService.recordSearchTerm(searchParams.getSearchTerm());
+        }
+        if (searchParams.getBookTitle() != null && !searchParams.getBookTitle().isEmpty()) {
+            searchSuggestionService.recordSearchTerm(searchParams.getBookTitle());
+        }
+        if (searchParams.getAuthor() != null && !searchParams.getAuthor().isEmpty()) {
+            searchSuggestionService.recordSearchTerm(searchParams.getAuthor());
+        }
+
         SearchCriteria criteria = SearchCriteria.builder()
                 .searchType(searchType)
                 .isbn(searchParams.getIsbn())
@@ -128,5 +140,13 @@ public class BookService {
 
         // Elasticsearch를 통한 검색
         return bookSearchService.search(criteria, pageable);
+    }
+
+    // 사용자가 검색 결과에서 특정 도서를 선택했을 때 이를 기록하는 메서드
+    // 이 데이터는 연관 검색어 추천 시스템의 정확도를 향상시키는데 사용됩니다.
+    public void recordBookSelection(String searchTerm, Long bookId) {
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            searchSuggestionService.recordBookSelection(searchTerm, bookId.toString());
+        }
     }
 }

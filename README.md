@@ -17,14 +17,6 @@
 
 ## 📌 3. KEY SUMMARY
 ### 🔷 성능 개선
-- 메시지 송신 방법 동기-> 비동기방식으로 변경
-### 개선 전
-![image](https://github.com/user-attachments/assets/17353b6d-6ff4-4e3e-9b07-e3c7f6a0d4ee)
-
-### 개선 후
-![image](https://github.com/user-attachments/assets/3b6d6462-64b7-4863-8add-52ce03b27583)
-
-- 응답 시간이 크게 줄어들어 성능이 약 10배 개선된 것을 확인 할 수 있었습니다.
 
 <details>
 <summary><b>🔹 게시글 조회 성능 개선 결과</b></summary>
@@ -95,7 +87,89 @@
 - **상세 조회**: 최대 응답 시간 55% 감소
 - 극단적 성능 저하 상황 감소
 </details>
+</details>
+------------------------------------------------------
+<details>
+<summary><b>🔍 검색 기능 성능 개선 결과</b></summary>
 
+## 🔹 검색 성능 개선
+### A. 개선 배경
+- 기존 RDBMS(MySQL)의 LIKE 검색으로 인한 성능 이슈
+- 도서관 시스템의 데이터 증가에 따른 확장성 고려
+- 다양한 검색 기능 요구사항 (부분 검색, 연관 검색, 자동완성 등)
+
+### B. 성능 테스트 환경
+- 테스트 도구: Apache JMeter
+- 가상 데이터: 100만건의 도서 데이터
+- 동시 사용자: 100명
+- 테스트 시간: 10분
+- 테스트 시나리오: 도서 제목 부분 검색
+
+### C. 성능 비교 결과
+#### 1. 기본 검색 성능 비교
+| 지표 | RDBMS(MySQL) | Elasticsearch | 개선율 |
+|------|--------------|---------------|--------|
+| **평균 응답시간** | 4,500ms | 850ms | 81.1% ↑ |
+| **90% 응답시간** | 6,800ms | 1,200ms | 82.4% ↑ |
+| **처리량(TPS)** | 22/sec | 117/sec | 431.8% ↑ |
+| **CPU 사용률** | 85% | 45% | 47.1% ↓ |
+
+#### 2. 복합 검색 성능 비교 (제목 + 저자 + 출판년도 동시 검색)
+| 지표 | RDBMS(MySQL) | Elasticsearch | 개선율 |
+|------|--------------|---------------|--------|
+| **평균 응답시간** | 8,200ms | 920ms | 88.8% ↑ |
+| **90% 응답시간** | 12,000ms | 1,500ms | 87.5% ↑ |
+| **처리량(TPS)** | 12/sec | 108/sec | 800% ↑ |
+
+### D. 주요 개선 사항
+<details>
+<summary><b>검색 기능 개선</b></summary>
+
+- 퍼지 검색 지원으로 오타허용
+- 형태소 분석을 통한 검색 정확도 향상
+- 실시간 자동완성 기능 구현
+- 연관 검색어 추천 기능
+</details>
+
+<details>
+<summary><b>시스템 성능 개선</b></summary>
+
+- 검색 응답 시간 80%이상 감소
+- 시스템 자원 사용률 40% 감소
+- 동시 검색 처리량 5배 이상 증가
+</details>
+
+### E. 결론
+<details>
+<summary><b>정량적 효과</b></summary>
+
+- 검색 응답 시간: 80% 이상 개선
+- 시스템 처리량: 430% 이상 증가
+- 시스템 안정성: CPU 사용률 40% 감소
+</details>
+<details>
+<summary><b>정성적 효과</b></summary>
+
+#### 사용자 경험 향상
+- 빠른 검색 응답
+- 다양한 검색 기능 제공
+
+#### 시스템 확장성 확보
+- 데이터 증가에도 안정적인 성능 유지
+- 손쉬운 기능 확장 가능
+</details>
+</details>
+------------------------------------------------------
+<details>
+<summary><b>🔹 메시지 송신 방법 동기-> 비동기방식으로 변경</b></summary>
+  
+### 개선 전
+![image](https://github.com/user-attachments/assets/17353b6d-6ff4-4e3e-9b07-e3c7f6a0d4ee)
+
+### 개선 후
+![image](https://github.com/user-attachments/assets/3b6d6462-64b7-4863-8add-52ce03b27583)
+
+- 응답 시간이 크게 줄어들어 성능이 약 10배 개선된 것을 확인 할 수 있었습니다.
 </details>
 
 ### 🔧 기술적 성과
@@ -103,6 +177,7 @@
 -  **AWS 인프라** 기반 자동화된 배포 환경 구축
 -  **JMeter**를 통한 성능 테스트 및 최적화
 -  **RabbitMQ** 활용한 실시간 알림 시스템 구현
+-  **ElasticSearch** 활용한 검색 기능 구현
 
 ## 🏗️ 4. 적용 기술 & 인프라 아키텍처 & ERD
 
@@ -117,7 +192,8 @@
 
 ### Database & Cache
 - ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)  
-- ![Redis](https://img.shields.io/badge/Redis-In%20Memory-DC382D?logo=redis&logoColor=white)  
+- ![Redis](https://img.shields.io/badge/Redis-In%20Memory-DC382D?logo=redis&logoColor=white)
+- ![ElasticSearch](https://img.shields.io/badge/ElasticSearch-Search%20Engine-005571?logo=elasticsearch&logoColor=white)
 
 ### DevOps
 - ![AWS](https://img.shields.io/badge/AWS-Elastic%20Beanstalk%2C%20RDS%2C%20ECR%2C%20ElastiCache-232F3E?logo=amazonaws&logoColor=white)  
@@ -131,7 +207,8 @@
 
 ### Rest API
 - ![Toss Payment API](https://img.shields.io/badge/Toss%20Payment%20API-Payment-0055FF?logo=toss&logoColor=white)  
-- ![Kakao Login](https://img.shields.io/badge/Kakao%20Login-Authentication-FFCD00?logo=kakao&logoColor=black) 
+- ![Kakao Login](https://img.shields.io/badge/Kakao%20Login-Authentication-FFCD00?logo=kakao&logoColor=black)
+- ![Naver Login](https://img.shields.io/badge/Naver%20Login-Authentication-FFCD00&logo=Naver&logoColor=white)
 
 ### 인프라 아키텍쳐
 ![image (4)](https://github.com/user-attachments/assets/b82c06a6-8f24-4779-aab9-478f2438d440)

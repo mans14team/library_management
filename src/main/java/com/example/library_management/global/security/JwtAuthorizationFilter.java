@@ -38,36 +38,39 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String accessToken = jwtUtil.getJwtFromHeader(req);
-        log.info("Extracted accessToken from header: {}", accessToken);
-        Optional<String> refreshTokenOpt = jwtUtil.getRefreshTokenFromCooke(req);
+        try {
+            String accessToken = jwtUtil.getJwtFromHeader(req);
+            log.info("Extracted accessToken from header: {}", accessToken);
+            Optional<String> refreshTokenOpt = jwtUtil.getRefreshTokenFromCooke(req);
 
-        if (StringUtils.hasText(accessToken)) {
-            if (jwtUtil.validateToken(accessToken)) {
-                setAuthentication(jwtUtil.getUserInfoFromToken(accessToken).getSubject());
-            } else if (refreshTokenOpt.isPresent() && jwtUtil.validateRefreshToken(refreshTokenOpt.get())) {
-                // AccessToken이 만료되었지만 RefreshToken이 유효한 경우
-                String refreshToken = refreshTokenOpt.get();
-                String email = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
+            if (StringUtils.hasText(accessToken)) {
+                if (jwtUtil.validateToken(accessToken)) {
+                    setAuthentication(jwtUtil.getUserInfoFromToken(accessToken).getSubject());
+                } else if (refreshTokenOpt.isPresent() && jwtUtil.validateRefreshToken(refreshTokenOpt.get())) {
+                    // AccessToken이 만료되었지만 RefreshToken이 유효한 경우
+                    String refreshToken = refreshTokenOpt.get();
+                    String email = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
 
-                // Redis에서 RefreshToken 조회
-                Optional<String> storedRefreshToken = jwtUtil.getRefreshTokenFromRedis(email);
+                    // Redis에서 RefreshToken 조회
+                    Optional<String> storedRefreshToken = jwtUtil.getRefreshTokenFromRedis(email);
 
-                if (storedRefreshToken.isPresent() && storedRefreshToken.get().equals(refreshToken)) {
-                    UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(email);
-                    UserRole role = userDetails.getUser().getRole();
+                    if (storedRefreshToken.isPresent() && storedRefreshToken.get().equals(refreshToken)) {
+                        UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(email);
+                        UserRole role = userDetails.getUser().getRole();
 
-                    String newAccessToken = jwtUtil.createAccessToken(email, role);
-                    res.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.BEARER_PREFIX + newAccessToken);
+                        String newAccessToken = jwtUtil.createAccessToken(email, role);
+                        res.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.BEARER_PREFIX + newAccessToken);
 
-                    String newRefreshToken = jwtUtil.updateRefreshToken(email, role);
-                    jwtUtil.setRefreshTokenCookie(res, newRefreshToken);
+                        String newRefreshToken = jwtUtil.updateRefreshToken(email, role);
+                        jwtUtil.setRefreshTokenCookie(res, newRefreshToken);
 
-                    setAuthentication(email);
+                        setAuthentication(email);
+                    }
                 }
+                filterChain.doFilter(req, res);
             }
-
-            filterChain.doFilter(req, res);
+        } catch (Exception e) {
+            throw e;
         }
     }
 

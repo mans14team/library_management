@@ -6,7 +6,9 @@ import com.example.library_management.global.oauth.handler.OAuth2LoginSuccessHan
 import com.example.library_management.global.oauth.service.CustomOAuth2UserService;
 import com.example.library_management.global.security.JwtAuthenticationFilter;
 import com.example.library_management.global.security.JwtAuthorizationFilter;
+import com.example.library_management.global.security.JwtExceptionFilter;
 import com.example.library_management.global.security.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +57,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtExceptionFilter jwtExceptionFilter(){
+        return new JwtExceptionFilter();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         // CSRF 설정
         http.csrf((csrf) -> csrf.disable());
@@ -62,6 +69,16 @@ public class SecurityConfig {
         // 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
         http.sessionManagement((sessionManagement) ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        // 예외 처리 추가
+        http.exceptionHandling(handling -> handling
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+                })
         );
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
@@ -73,6 +90,7 @@ public class SecurityConfig {
                                 "/library/books/search/all",
                                 "/library/books/search/subjects").permitAll()
                         .requestMatchers("/library/books/autocomplete").permitAll()
+                        .requestMatchers("/library/test/public").permitAll()
                         .anyRequest().authenticated()     // 그 외 모든 요청 인증처리
         );
 
@@ -86,8 +104,9 @@ public class SecurityConfig {
         );
 
         // 필터 관리
-        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtExceptionFilter(), jwtAuthorizationFilter().getClass()); // 예외 필터를 가장 앞에 배치
 
         return http.build();
     }

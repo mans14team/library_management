@@ -38,6 +38,11 @@ dependencies {
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
 
+    // 테스트를 위한 JWT 의존성 추가
+    testImplementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+    testImplementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+    testImplementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
+
     implementation 'at.favre.lib:bcrypt:0.10.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'

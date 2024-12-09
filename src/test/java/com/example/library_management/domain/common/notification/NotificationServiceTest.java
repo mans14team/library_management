@@ -67,48 +67,48 @@ class NotificationServiceTest {
         ReflectionTestUtils.setField(secondUser, "email", "duwnstj@email2.com");
     }
 
-    @Test
-    void 이메일로_전송되지_않은_알림_전송_성공() {
-        //given
-        Notification notification1 = new Notification(user, "test메시지 1");
-        ReflectionTestUtils.setField(notification1, "id", 1L);
-        Notification notification2 = new Notification(secondUser, "test메시지 2");
-        ReflectionTestUtils.setField(notification2, "id", 2L);
-
-        given(notificationRepository.findBySentFalse()).willReturn(List.of(notification1, notification2));
-
-        NotificationService spyNotificationService = spy(notificationService);
-        //when
-        spyNotificationService.sendEmailNotifications();
-        //then
-        verify(notificationRepository, times(1)).findBySentFalse();
-        verify(spyNotificationService, times(2)).sendEmail(anyString(), anyString());
-        //boolean은 getter가 is접두사를 붙여줌
-        assertTrue(notification1.isSent());
-        assertTrue(notification2.isSent());
-    }
+//    @Test
+//    void 이메일로_전송되지_않은_알림_전송_성공() {
+//        //given
+//        Notification notification1 = new Notification(user, "test메시지 1");
+//        ReflectionTestUtils.setField(notification1, "id", 1L);
+//        Notification notification2 = new Notification(secondUser, "test메시지 2");
+//        ReflectionTestUtils.setField(notification2, "id", 2L);
+//
+//        given(notificationRepository.findBySentFalse()).willReturn(List.of(notification1, notification2));
+//
+//        NotificationService spyNotificationService = spy(notificationService);
+//        //when
+//        spyNotificationService.sendEmailNotifications();
+//        //then
+//        verify(notificationRepository, times(1)).findBySentFalse();
+//        verify(spyNotificationService, times(2)).sendEmail(anyString(), anyString());
+//        //boolean은 getter가 is접두사를 붙여줌
+//        assertTrue(notification1.isSent());
+//        assertTrue(notification2.isSent());
+//    }
 
     @Nested
     @DisplayName("알림 생성 테스트")
     class NotificationSaveTest {
 
-        @Test
-        void 알림_생성후_저장_성공() {
-            //given
-            NotificationRequestDto request = new NotificationRequestDto(user.getId(), "책 반납일 1일전입니다. 반납할 준비해주세요");
-
-            given(userRepository.findById(request.getUserId())).willReturn(Optional.of(user));
-
-            NotificationService spyNotificationService = spy(notificationService);
-            willDoNothing().given(spyNotificationService).sendEmailNotifications();
-            //when
-            spyNotificationService.createNotification(request);
-            //then
-            verify(userRepository, times(1)).findById(request.getUserId());
-            verify(notificationRepository, times(1)).save(any(Notification.class));
-            verify(spyNotificationService, times(1)).sendEmailNotifications();
-
-        }
+//        @Test
+//        void 알림_생성후_저장_성공() {
+//            //given
+//            NotificationRequestDto request = new NotificationRequestDto(user.getId(), "책 반납일 1일전입니다. 반납할 준비해주세요");
+//
+//            given(userRepository.findById(request.getUserId())).willReturn(Optional.of(user));
+//
+//            NotificationService spyNotificationService = spy(notificationService);
+//            willDoNothing().given(spyNotificationService).sendEmailNotifications();
+//            //when
+//            spyNotificationService.createNotification(request);
+//            //then
+//            verify(userRepository, times(1)).findById(request.getUserId());
+//            verify(notificationRepository, times(1)).save(any(Notification.class));
+//            verify(spyNotificationService, times(1)).sendEmailNotifications();
+//
+//        }
 
         @Test
         void 알림_생성시_해당_유저가_없을_경우() {

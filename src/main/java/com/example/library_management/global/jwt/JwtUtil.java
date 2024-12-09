@@ -1,6 +1,7 @@
 package com.example.library_management.global.jwt;
 
-import com.example.library_management.domain.book.controller.BookController;
+import com.example.library_management.domain.common.exception.GlobalException;
+import com.example.library_management.domain.common.exception.GlobalExceptionConst;
 import com.example.library_management.domain.user.enums.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -81,6 +82,16 @@ public class JwtUtil {
         cookie.setMaxAge((int) (REFRESH_TOKEN_TIME / 1000));
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
+
+//        ResponseCookie cookie = ResponseCookie.from(REFRESH_HEADER, refreshToken)      // 프론트 연결시 필요한 코드
+//                .path("/")
+//                .sameSite("Lax")      // Strict나 Lax 사용 가능 (nginx 프록시로 같은 도메인이므로)
+//                .secure(true)         // HTTPS 사용시
+//                .httpOnly(true)
+//                .maxAge(REFRESH_TOKEN_TIME / 1000)
+//                .build();
+//
+//        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     // Refresh 토큰 쿠키에서 가져오기
@@ -150,16 +161,20 @@ public class JwtUtil {
             return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.", e);
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token, 만료된 JWT token 입니다.", e);
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         } catch (UnsupportedJwtException e) {
             log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.", e);
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         } catch (IllegalArgumentException e) {
             log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.", e);
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         }catch (Exception e) {
             log.error("Internal server error", e);
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         }
-        return false;
     }
 
     // Refresh Token 검증 (Access Token 검증과 동일한 로직 사용)

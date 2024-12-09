@@ -4,7 +4,9 @@ import com.example.library_management.domain.bookRental.exception.DiffrentBookCo
 import com.example.library_management.domain.common.dto.ErrorResponse;
 import com.example.library_management.global.config.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -36,6 +38,16 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(400, e.getMessage());
         return ResponseEntity
                 .status(400)
+                .body(ApiResponse.error(errorResponse));
+    }
+
+    // PreAuthorize 권한 체크시 오류 처리
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(), "접근 권한이 없습니다.");
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(errorResponse));
     }
 }

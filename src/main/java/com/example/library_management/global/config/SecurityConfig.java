@@ -4,10 +4,7 @@ import com.example.library_management.global.jwt.JwtUtil;
 import com.example.library_management.global.oauth.handler.OAuth2LoginFailureHandler;
 import com.example.library_management.global.oauth.handler.OAuth2LoginSuccessHandler;
 import com.example.library_management.global.oauth.service.CustomOAuth2UserService;
-import com.example.library_management.global.security.JwtAuthenticationFilter;
-import com.example.library_management.global.security.JwtAuthorizationFilter;
-import com.example.library_management.global.security.JwtExceptionFilter;
-import com.example.library_management.global.security.UserDetailsServiceImpl;
+import com.example.library_management.global.security.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +59,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtLogoutFilter jwtLogoutFilter(){
+        return new JwtLogoutFilter(jwtUtil);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         // CSRF 설정
         http.csrf((csrf) -> csrf.disable());
@@ -104,9 +106,10 @@ public class SecurityConfig {
         );
 
         // 필터 관리
-        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter(), jwtAuthorizationFilter().getClass()); // 예외 필터를 가장 앞에 배치
+        http.addFilterBefore(jwtExceptionFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtLogoutFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

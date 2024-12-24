@@ -8,7 +8,6 @@ import jakarta.security.auth.message.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,5 +29,11 @@ public class AuthController {
     @PostMapping("/auth/signin")
     public ResponseEntity<ApiResponse<String>> signin(@Valid @RequestBody SigninRequestDto signinRequestDto) throws AuthException, IOException {
         return ResponseEntity.ok(ApiResponse.success(authService.signin(signinRequestDto)));
+    }
+
+    // 로그아웃
+    @PostMapping("/auth/logout")
+    public ResponseEntity<ApiResponse<String>> logout(){
+        return ResponseEntity.ok(ApiResponse.success(authService.logout()));
     }
 }

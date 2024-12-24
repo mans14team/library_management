@@ -73,4 +73,8 @@ public class AuthService {
 
         return "로그인 성공했습니다.";
     }
+
+    public String logout() {
+        return "로그아웃에 성공했습니다.";
+    }
 }

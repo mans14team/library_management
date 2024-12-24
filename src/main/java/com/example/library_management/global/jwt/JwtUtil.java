@@ -36,6 +36,8 @@ public class JwtUtil {
     public static final String AUTHORIZATION_KEY = "auth";
     // Token 식별자
     public static final String BEARER_PREFIX = "Bearer ";
+    // AccessToken 블랙리스트
+    private static final String BLACKLIST_PREFIX = "blacklist:";
     // Access 토큰 만료시간
     private final long ACCESS_TOKEN_TIME = 30 * 60 * 1000L; // 60분
     // refresh 토큰 만료시간
@@ -126,6 +128,18 @@ public class JwtUtil {
         redisTemplate.delete(userEmail);
     }
 
+    // 로그아웃 시 AccessToken을 블랙리스트에 추가
+    public void addToBlacklist(String token) {
+        Claims claims = getUserInfoFromToken(token);
+        // 토큰의 남은 유효시간 계산
+        long expiration = claims.getExpiration().getTime() - System.currentTimeMillis();
+        if (expiration > 0) {
+            String blacklistKey = BLACKLIST_PREFIX + token;
+            // 토큰의 남은 유효기간만큼만 블랙리스트에 저장
+            redisTemplate.opsForValue().set(blacklistKey, "blacklisted", expiration, TimeUnit.MILLISECONDS);
+        }
+    }
+
     // 토큰 생성
     public String createToken(String email, UserRole role, long tokenTime) {
         Date date = new Date();
@@ -155,6 +169,13 @@ public class JwtUtil {
     // 토큰 검증
     public boolean validateToken(String token) {
         log.info("Validating JWT token");
+        // 1. 먼저 블랙리스트 확인
+        if (isTokenBlacklisted(token)) {
+            log.error("Blacklisted token is used");
+            throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
+        }
+
+        // 2. 토큰 유효성 검증
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             log.info("Token is valid");
@@ -175,6 +196,11 @@ public class JwtUtil {
             log.error("Internal server error", e);
             throw new GlobalException(GlobalExceptionConst.UNAUTHORIZED_OWNERTOKEN);
         }
+    }
+
+    // 토큰이 블랙리스트에 있는지 확인
+    public boolean isTokenBlacklisted(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
     }
 
     // Refresh Token 검증 (Access Token 검증과 동일한 로직 사용)
